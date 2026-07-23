@@ -49,8 +49,6 @@ export default function LoginForm() {
 
     try {
       const response = await login(data.username, data.password);
-
-      // FIX: Access nesting safely whether or not your backend uses an ApiResponse wrapper
       const user = response.data?.data?.user || response.data?.user;
 
       if (!user || !user.role) {
@@ -77,8 +75,6 @@ export default function LoginForm() {
       }
     } catch (err: any) {
       dispatch(loginFailure());
-
-      // Capture clean error messages from Axios interceptors or backend ApiError wrappers
       const message = err.response?.data?.message || err.message || "Invalid username or password.";
       setErrorMsg(message);
     } finally {
@@ -87,8 +83,9 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4 md:p-2 pt-24 md:pt-6">
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-visible flex flex-col md:flex-row min-h-[680px] mt-16 md:mt-0">
+    <main className="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4">
+      {/* Container Box */}
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-visible flex flex-col md:flex-row min-h-[600px] relative">
         
         {/* LEFT SIDE: Branding Banner */}
         <div className="hidden md:flex w-1/2 bg-gradient-to-br from-green-600 to-emerald-500 text-white flex-col justify-between p-12 text-center relative overflow-hidden rounded-l-3xl">
@@ -98,7 +95,7 @@ export default function LoginForm() {
           <div className="my-auto space-y-8 z-10">
             <img
               src="/assets/sambad.png"
-              className="w-auto mx-auto object-contain transition-all duration-300 hover:scale-110 drop-shadow-md"
+              className="w-auto mx-auto object-contain transition-all duration-300 hover:scale-105 drop-shadow-md"
               alt="Sambad Logo"
             />
             
@@ -126,7 +123,7 @@ export default function LoginForm() {
                 ].map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium border border-white/10 hover:bg-white/20 transition-all duration-200 hover:scale-105 cursor-default"
+                    className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium border border-white/10 hover:bg-white/20 transition-all duration-200 cursor-default"
                   >
                     {tag}
                   </span>
@@ -146,16 +143,18 @@ export default function LoginForm() {
         </div>
 
         {/* RIGHT SIDE: Authentication Form */}
-        <section className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white dark:from-gray-100 rounded-r-3xl relative overflow-visible">
-          <div className="absolute -top-16 md:-top-20 left-1/2 -translate-x-1/2 bg-white rounded-2xl border border-gray-100 shadow-xl p-4 w-40 h-40 md:w-70 md:h-54 flex flex-col items-center justify-center z-20 transition-transform duration-300 hover:-translate-y-5">
+        <section className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white rounded-r-3xl relative p-6 pt-24 md:pt-20">
+          
+          {/* Floating Logo Header */}
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white rounded-2xl border border-gray-100 shadow-xl p-4 w-44 h-28 flex flex-col items-center justify-center z-20">
             <img 
               src="/assets/urbanlogo1.png"
               alt="Urban Cruise" 
-              className="h-full w-full object-contain drop-shadow-lg mt-1"
+              className="h-full w-full object-contain drop-shadow-md"
             />
           </div>
 
-          <div className="w-full max-w-md space-y-6 px-6 pt-28 md:pt-32 pb-8">
+          <div className="w-full max-w-md space-y-6">
             <div className="space-y-1.5 text-center md:text-left">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent tracking-tight">
                 Welcome to SamVaad
@@ -184,14 +183,14 @@ export default function LoginForm() {
                   </div>
                   <input
                     {...register("username", { required: "username is required" })}
-                    type="username"
+                    type="text"
                     placeholder="username"
                     className={`w-full border ${errors.username ? 'border-red-400 focus:ring-red-100' : 'border-gray-200 focus:ring-green-100 focus:border-green-500'} rounded-xl pl-10 pr-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 transition-all`}
                     disabled={isLoading}
                   />
                 </div>
                 {errors.username && (
-                  <p className="text-xs tex`t-red-500 font-medium mt-1">{errors.username.message}</p>
+                  <p className="text-xs text-red-500 font-medium mt-1">{errors.username.message}</p>
                 )}
               </div>
 
