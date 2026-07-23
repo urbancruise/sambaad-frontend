@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@keyframes zoom404 {
+  from {
+    opacity:0;
+    transform:scale(10) skew(20deg,20deg);
+  }
+}
+
+.animate-zoom404 {
+  animation: zoom404 .9s cubic-bezier(.3,.8,1,1.05);
+}
