@@ -26,9 +26,10 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "../neewfolder/layout.tsx", "src/features/calendar/hooks/useCale"  ],
+  ],
   "exclude": ["node_modules"]
 }
