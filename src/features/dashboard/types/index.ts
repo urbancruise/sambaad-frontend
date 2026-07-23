@@ -132,3 +132,4 @@ export interface DashboardData {
     task: any;
     activity: any;
 }
+

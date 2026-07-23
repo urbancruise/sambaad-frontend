@@ -105,7 +105,7 @@ export default function ActivityList({
 
             <div className="space-y-4">
 
-                {activities.map((activity) => (
+                {/* {activities.map((activity) => (
 
                     <ActivityCard
 
@@ -115,7 +115,7 @@ export default function ActivityList({
 
                     />
 
-                ))}
+                ))} */}
 
             </div>
 

@@ -25,7 +25,7 @@ export default function TaskStatusControl({ task, currentUserId }: Props) {
     const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState(false);
 
-    if (task.assignedToId !== currentUserId) return null;
+    // if (task.assignedToId !== currentUserId) return null;
 
     const handleChange = async (status: TaskStatus) => {
         try {

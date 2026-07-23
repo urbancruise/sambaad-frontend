@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { TeamTask } from '../types';
-import TaskCard from './cards/TaskCard';
+// import TaskCard from './cards/TaskCard';
 
 interface TaskTreeListProps {
   tasks: TeamTask[];
@@ -22,9 +22,9 @@ export default function TaskTreeList({ tasks, onToggleActivity }: TaskTreeListPr
         </button>
       </div>
 
-      {tasks.map((task) => (
-        <TaskCard key={task.id} node={task} onToggleActivity={onToggleActivity} />
-      ))}
+      {/* {tasks.map((task) => (
+        // <TaskCard key={task.id} node={task} onToggleActivity={onToggleActivity} />
+      ))} */}
     </section>
   );
 }
