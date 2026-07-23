@@ -87,7 +87,7 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="min-h-screen w-[-webkit-fill-available] flex items-center justify-center bg-gray-100 p-4 md:p-2 pt-24 md:pt-6">
+    <main className="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4 md:p-2 pt-24 md:pt-6">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-visible flex flex-col md:flex-row min-h-[680px] mt-16 md:mt-0">
         
         {/* LEFT SIDE: Branding Banner */}
