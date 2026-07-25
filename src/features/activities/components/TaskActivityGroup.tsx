@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import {
     Calendar,
     Flag,
@@ -10,6 +11,7 @@ import {
     Plus,
 } from "lucide-react";
 
+import { RootState } from "@/src/lib/store";
 import { formatDate } from "@/src/lib/date";
 import { Task } from "@/src/features/tasks/types";
 import { Activity } from "../types";
@@ -26,6 +28,10 @@ interface Props {
 export default function TaskActivityGroup({ task, activities }: Props) {
     const [expanded, setExpanded] = useState(false);
     const [open, setOpen] = useState(false);
+
+    // Managers can't self-assign — only assign to their subordinate TLs.
+    const currentRole = useSelector((state: RootState) => state.auth.user?.role);
+    const canCreate = !["MANAGER", "HOD"].includes(currentRole ?? "");
 
     const taskActivities = useMemo(
         () => activities.filter((activity) => activity.taskId === task.id),
@@ -95,13 +101,15 @@ export default function TaskActivityGroup({ task, activities }: Props) {
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
                                 Target Checkpoints ({taskActivities.length})
                             </span>
-                            <button
-                                onClick={() => setOpen(true)}
-                                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-black  hover:bg-emerald-500 shadow-sm transition-all active:scale-95"
-                            >
-                                <Plus size={14} />
-                                Add Unit
-                            </button>
+                            {canCreate && (
+                                <button
+                                    onClick={() => setOpen(true)}
+                                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-black  hover:bg-emerald-500 shadow-sm transition-all active:scale-95"
+                                >
+                                    <Plus size={14} />
+                                    Add Unit
+                                </button>
+                            )}
                         </div>
 
                         {/* Cleaned up wrapper: The table handles its own 10-item scrolling natively now */}
@@ -112,11 +120,13 @@ export default function TaskActivityGroup({ task, activities }: Props) {
                 </div>
             )}
 
-            <CreateActivityModal
-                open={open}
-                onClose={() => setOpen(false)}
-                taskId={task.id}
-            />
+            {canCreate && (
+                <CreateActivityModal
+                    open={open}
+                    onClose={() => setOpen(false)}
+                    taskId={task.id}
+                />
+            )}
         </div>
     );
 }

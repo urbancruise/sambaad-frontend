@@ -59,10 +59,19 @@ export default function LoginForm() {
 
       switch (user.role) {
         case "ADMIN":
-          router.replace("/tasks/admin");
+          router.replace("/admin/dashboard");
+          break;
+        case "SUPER_ADMIN":
+          router.replace("/admin/dashboard");
+          break;
+        case "HOD":
+          router.replace("/hod/dashboard");
+          break;
+        case "ZONAL_HEAD":
+          router.replace("/hod/dashboard");
           break;
         case "MANAGER":
-          router.replace("/tasks/manager");
+          router.replace("/manager/dashboard");
           break;
         case "TEAM_LEAD":
           router.replace("/teamlead/dashboard");
@@ -83,9 +92,8 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4">
-      {/* Container Box */}
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-visible flex flex-col md:flex-row min-h-[600px] relative">
+    <main className="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4 md:p-2 pt-24 md:pt-6">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-visible flex flex-col md:flex-row min-h-[680px] mt-16 md:mt-0">
         
         {/* LEFT SIDE: Branding Banner */}
         <div className="hidden md:flex w-1/2 bg-gradient-to-br from-green-600 to-emerald-500 text-white flex-col justify-between p-12 text-center relative overflow-hidden rounded-l-3xl">
@@ -95,7 +103,7 @@ export default function LoginForm() {
           <div className="my-auto space-y-8 z-10">
             <img
               src="/assets/sambad.png"
-              className="w-auto mx-auto object-contain transition-all duration-300 hover:scale-105 drop-shadow-md"
+               className="w-auto mx-auto object-contain transition-all duration-300 hover:scale-110 drop-shadow-md"
               alt="Sambad Logo"
             />
             
@@ -146,7 +154,7 @@ export default function LoginForm() {
         <section className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white rounded-r-3xl relative p-6 pt-24 md:pt-20">
           
           {/* Floating Logo Header */}
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white rounded-2xl border border-gray-100 shadow-xl p-4 w-44 h-28 flex flex-col items-center justify-center z-20">
+            <div className="absolute -top-16 md:-top-20 left-1/2 -translate-x-1/2 bg-white rounded-2xl border border-gray-100 shadow-xl p-4 w-60 h-35 md:w-90 md:h-64 flex flex-col items-center justify-center z-20 transition-transform duration-300 hover:-translate-y-5">
             <img 
               src="/assets/urbanlogo1.png"
               alt="Urban Cruise" 

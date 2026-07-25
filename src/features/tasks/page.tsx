@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/src/lib/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/src/lib/store";
 import { useTasks } from "./hooks/useTask";
 import { setLoading, setTasks } from "./store/taskSlice";
 import { getTasks } from "./api/task.service";
@@ -16,6 +16,11 @@ export default function TaskPage() {
     const { tasks, loading } = useTasks();
     const [open, setOpen] = useState(false);
     const { goals } = useGoals();
+
+    // Managers view/manage their own assigned work but cannot self-assign
+    // new goals/tasks/activities — only assign to their subordinate TLs.
+    const currentRole = useSelector((state: RootState) => state.auth.user?.role);
+    const canCreate = !["MANAGER", "HOD"].includes(currentRole ?? "");
 
     useEffect(() => {
         const loadTasks = async () => {
@@ -46,13 +51,15 @@ export default function TaskPage() {
                     </p>
                 </div>
 
-                <button
-                    onClick={() => setOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold tracking-wide shadow-sm transition-all duration-200 active:scale-95 text-sm"
-                >
-                    <Plus size={18} />
-                    <span>Create Interface Task</span>
-                </button>
+                {canCreate && (
+                    <button
+                        onClick={() => setOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold tracking-wide shadow-sm transition-all duration-200 active:scale-95 text-sm"
+                    >
+                        <Plus size={18} />
+                        <span>Create Interface Task</span>
+                    </button>
+                )}
             </div>
 
             {/* Loading State */}
@@ -87,7 +94,9 @@ export default function TaskPage() {
                 </div>
             )}
 
-            <CreateTaskModal open={open} onClose={() => setOpen(false)} />
+            {canCreate && (
+                <CreateTaskModal open={open} onClose={() => setOpen(false)} />
+            )}
         </div>
     );
 }

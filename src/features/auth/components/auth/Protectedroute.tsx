@@ -25,9 +25,9 @@ export default function ProtectedRoute({ children, roles }: Props) {
     }
 
     // 3. Optional: Un-comment this to protect roles once loading is finished
-    // if (user && !roles.includes(user.role)) {
-    //   router.replace("/unauthorized"); // Make sure you have a 403 page
-    // }
+    if (user && !roles.includes(user.role)) {
+      router.replace("/unauthorized"); // Make sure you have a 403 page
+    }
   }, [loading, isAuthenticated, user, roles, router]);
 
   // Render a clean loading screen while we determine auth state

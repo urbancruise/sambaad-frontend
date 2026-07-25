@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/src/lib/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/src/lib/store";
 import { useActivities } from "./hooks/useActivities";
 import { useTasks } from "../tasks/hooks/useTask";
 import {
@@ -19,6 +19,11 @@ export default function ActivityPage() {
     const { tasks } = useTasks();
     const { activities, loading, error } = useActivities();
     const [open, setOpen] = useState(false);
+
+    // Managers view/manage their own assigned work but cannot self-assign
+    // new goals/tasks/activities — only assign to their subordinate TLs.
+    const currentRole = useSelector((state: RootState) => state.auth.user?.role);
+    const canCreate = !["MANAGER", "HOD"].includes(currentRole ?? "");
 
     useEffect(() => {
         loadActivities();
@@ -47,12 +52,14 @@ export default function ActivityPage() {
                     </p>
                 </div>
 
-                <button
-                    onClick={() => setOpen(true)}
-                    className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold tracking-wide text-white hover:bg-emerald-500 shadow-lg shadow-emerald-600/10 active:scale-98 transition-all"
-                >
-                    + Create Activity
-                </button>
+                {canCreate && (
+                    <button
+                        onClick={() => setOpen(true)}
+                        className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold tracking-wide text-white hover:bg-emerald-500 shadow-lg shadow-emerald-600/10 active:scale-98 transition-all"
+                    >
+                        + Create Activity
+                    </button>
+                )}
             </div>
 
             {/* Loading Indicator */}
@@ -91,8 +98,10 @@ export default function ActivityPage() {
 
             </div>
         )}
-            
-            <CreateActivityModal open={open} onClose={() => setOpen(false)} />
+
+            {canCreate && (
+                <CreateActivityModal open={open} onClose={() => setOpen(false)} />
+            )}
         </div>
     );
 }

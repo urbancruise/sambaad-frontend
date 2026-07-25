@@ -21,6 +21,21 @@ import teamMembersReducer from "@/src/features/teamLead/assignments/shared/store
 import teamLeadTaskReducer from "@/src/features/teamLead/assignments/tasks/store/taskSlice";
 import selectableGoalReducer from "@/src/features/teamLead/assignments/shared/store/selectableGoalSlice";
 import selectableTaskReducer from "@/src/features/teamLead/assignments/shared/store/selectableTaskSlice";
+import managerTeamReducer from "@/src/features/manager/team/store/teamSlice";
+import managerTeamLeadProfileReducer from "@/src/features/manager/profile/store/profileSlice";
+import managerTeamLeadGoalsReducer from "@/src/features/manager/profile/goals/store/goalSlice";
+import managerTeamLeadTasksReducer from "@/src/features/manager/profile/tasks/store/taskSlice";
+import managerTeamLeadActivitiesReducer from "@/src/features/manager/profile/activities/store/activitySlice";
+import hodTeamReducer from "@/src/features/hod/team/store/teamSlice";
+import hodTeamLeadProfileReducer from "@/src/features/hod/profile/store/profileSlice";
+import hodTeamLeadGoalsReducer from "@/src/features/hod/profile/goals/store/goalSlice";
+import hodTeamLeadTasksReducer from "@/src/features/hod/profile/tasks/store/taskSlice";
+import hodTeamLeadActivitiesReducer from "@/src/features/hod/profile/activities/store/activitySlice";
+import adminTeamReducer from "@/src/features/admin/team/store/teamSlice";
+import adminUserProfileReducer from "@/src/features/admin/profile/store/profileSlice";
+import adminUserGoalsReducer from "@/src/features/admin/profile/goals/store/goalSlice";
+import adminUserTasksReducer from "@/src/features/admin/profile/tasks/store/taskSlice";
+import adminUserActivitiesReducer from "@/src/features/admin/profile/activities/store/activitySlice";
 
 export const makeStore = () => {
   return configureStore({
@@ -46,6 +61,21 @@ export const makeStore = () => {
       teamLeadTasks: teamLeadTaskReducer,
       selectableGoals: selectableGoalReducer,
       selectableTasks: selectableTaskReducer,
+      managerTeam: managerTeamReducer,
+      managerTeamLeadProfile: managerTeamLeadProfileReducer,
+      managerTeamLeadGoals: managerTeamLeadGoalsReducer,
+      managerTeamLeadTasks: managerTeamLeadTasksReducer,
+      managerTeamLeadActivities: managerTeamLeadActivitiesReducer,
+      hodTeam: hodTeamReducer,
+      hodTeamLeadProfile: hodTeamLeadProfileReducer,
+      hodTeamLeadGoals: hodTeamLeadGoalsReducer,
+      hodTeamLeadTasks: hodTeamLeadTasksReducer,
+      hodTeamLeadActivities: hodTeamLeadActivitiesReducer,
+      adminTeam: adminTeamReducer,
+      adminUserProfile: adminUserProfileReducer,
+      adminUserGoals: adminUserGoalsReducer,
+      adminUserTasks: adminUserTasksReducer,
+      adminUserActivities: adminUserActivitiesReducer,
     },
   });
 };

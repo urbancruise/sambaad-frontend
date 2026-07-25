@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import { ChevronDown, ChevronRight, Layers, Plus } from "lucide-react";
+import { RootState } from "@/src/lib/store";
 import { Goal } from "@/src/features/goals/types";
 import { Task } from "../types";
 import CreateTaskModal from "./CreateTaskModal";
 import TaskCard from "./TaskCard";
-import Link from "next/link";
 
-// 1. Dynamic Capsule Theme Config for Group Headers
 interface GroupThemeProps {
     badgeBg: string;
     badgeText: string;
@@ -45,17 +45,17 @@ interface Props {
 
 
 export default function TaskGroup({ goal, tasks }: Props) {
-    const handleClick = ()=>{
-        // tasks.map((task)=>{
-        //     if(task.id)
-        // })
-        setOpen(!open)
-    }
- 
     const [open, setOpen] = useState(false);
     const [openCreate, setOpenCreate] = useState(false);
 
-    // Safe lookup without indexing errors
+    // Managers can't self-assign — only assign to their subordinate TLs.
+    const currentRole = useSelector((state: RootState) => state.auth.user?.role);
+    const canCreate = !["MANAGER", "HOD"].includes(currentRole ?? "");
+
+    const handleClick = () => {
+        setOpen(!open);
+    };
+
     const lookupKey = String(goal.goalType || (goal as any).goalType || "default");
     const theme = groupThemeConfig[lookupKey] || groupThemeConfig.default;
 
@@ -85,12 +85,14 @@ export default function TaskGroup({ goal, tasks }: Props) {
                         {tasks.length} TASK{tasks.length !== 1 ? "S" : ""}
                     </span>
 
-                    <button
-                        onClick={() => setOpenCreate(true)}
-                        className="flex items-center gap-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 text-xs font-bold transition-all active:scale-95 shadow-sm"
-                    >
-                        <Plus size={14} /> Add Task
-                    </button>
+                    {canCreate && (
+                        <button
+                            onClick={() => setOpenCreate(true)}
+                            className="flex items-center gap-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 text-xs font-bold transition-all active:scale-95 shadow-sm"
+                        >
+                            <Plus size={14} /> Add Task
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -129,11 +131,13 @@ export default function TaskGroup({ goal, tasks }: Props) {
                 </div>
             )}
 
-            <CreateTaskModal
-                open={openCreate}
-                goalId={goal.id}
-                onClose={() => setOpenCreate(false)}
-            />
+            {canCreate && (
+                <CreateTaskModal
+                    open={openCreate}
+                    goalId={goal.id}
+                    onClose={() => setOpenCreate(false)}
+                />
+            )}
         </div>
     );
 }

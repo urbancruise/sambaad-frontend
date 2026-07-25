@@ -7,14 +7,12 @@ import { useAuth } from '@/src/features/auth/hooks/useAuth'
 import api from '@/src/lib/axios';
 import NotificationBell from "@/src/features/notifications/components/NotificationBell";
 
-// Define a type for the Nav Items
 interface NavItem {
   label: string;
   url: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
 }
 
-// Keep the old items as a fallback default list
 const defaultNavItems: NavItem[] = [
   { label: 'IT Team',     icon: Layers, url: '#'  },
   { label: 'Sales Team',  icon: Layers, url: '#', },
@@ -22,14 +20,17 @@ const defaultNavItems: NavItem[] = [
   { label: 'SEO Team',    icon: Layers, url: '#', },
 ];
 
-// 1. Accept navItems as a prop here
 export default function Navbar({ navItems = defaultNavItems }: { navItems?: NavItem[] }) {
   const { user } = useAuth();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  
+
   const pathname = usePathname();
+
+  // Was hardcoded to "TL" (desktop) / "SJ" (mobile) regardless of who
+  // was actually logged in — now derived from the real user.
+  const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "?";
 
   const handleLogout = async () => {
     await api.post("/auth/logout");
@@ -39,9 +40,9 @@ export default function Navbar({ navItems = defaultNavItems }: { navItems?: NavI
   };
 
   return (
-    <header className="sticky top-0 z-20 bg-[#e29657] border-b border-slate-100">
+    <header className="sticky top-0 z-20 bg-amber-500/80 border-b border-slate-100 pt-1">
       {/* ── Main bar ── */}
-      <div className="flex items-center justify-between h-14">
+      <div className="flex items-center justify-between h-13">
 
         {/* Left: Brand */}
         <div className=" flex items-center transition-all duration-300 px-6">
@@ -64,7 +65,7 @@ export default function Navbar({ navItems = defaultNavItems }: { navItems?: NavI
               <Link
                 key={label}
                 href={url}
-                className={`flex items-center gap-2 px-3 border border-amber-600 rounded-2xl bg-amber-500 py-1.5 font-medium text-xl transition-all
+                className={`flex items-center gap-2 px-1 border border-amber-300 rounded-xl bg-amber-500/60 py-1.5 font-medium text-l transition-all
                   ${isActive
                     ? 'bg-slate-800/60 text-white'
                     : 'text-slate-100 hover:bg-slate-800/30 hover:text-white'
@@ -82,7 +83,7 @@ export default function Navbar({ navItems = defaultNavItems }: { navItems?: NavI
           <div className="flex items-center gap-4">
             <NotificationBell />
           </div>
-          <div className="relative"> {/* Added relative wrapping container to properly anchor the absolute dropdown */}
+          <div className="relative">
             <div 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 cursor-pointer group select-none"
@@ -92,7 +93,7 @@ export default function Navbar({ navItems = defaultNavItems }: { navItems?: NavI
                 <span className="text-[13px] text-slate-200 font-medium mt-0.5 block">{user?.role}</span>
               </div>
               <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-white shrink-0">
-                TL
+                {initials}
               </div>
               
               <ChevronDown 
@@ -179,7 +180,7 @@ export default function Navbar({ navItems = defaultNavItems }: { navItems?: NavI
 
     <div className="mt-2 border-t border-slate-800 pt-2 flex items-center gap-3 px-3">
       <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-emerald-500 bg-slate-700 text-xs font-bold text-white">
-        SJ
+        {initials}
       </div>
 
       <div>
