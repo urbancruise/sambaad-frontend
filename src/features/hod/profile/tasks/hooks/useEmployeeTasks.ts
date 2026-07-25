@@ -73,7 +73,7 @@ export const useEmployeeTasks = () => {
 
         (state: RootState) =>
 
-            state.hodManagerTasks
+            state.hodTeamLeadTasks
 
     );
 

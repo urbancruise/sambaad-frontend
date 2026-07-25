@@ -6,6 +6,7 @@ import { X, ListChecks, Loader2 } from "lucide-react";
 
 import { createEmployeeActivity } from "../api/activity.services";
 import { useEmployeeTasks } from "../../tasks/hooks/useEmployeeTasks";
+import { EmployeeTask } from "../../tasks/type";
 
 interface Props {
     open: boolean;
@@ -103,7 +104,7 @@ export default function CreateEmployeeActivityModal({ open, onClose, onCreated, 
                                 className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-cyan-500 focus:outline-none"
                             >
                                 <option value="">Select this employee's task</option>
-                                {tasks.map((t) => (
+                                {tasks.map((t: EmployeeTask) => (
                                     <option key={t.id} value={t.id}>{t.title}</option>
                                 ))}
                             </select>

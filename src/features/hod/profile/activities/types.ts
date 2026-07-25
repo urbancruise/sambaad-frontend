@@ -25,15 +25,15 @@ export interface EmployeeActivity {
     createdById: number;
 
     assignedToId: number;
-
+    
     task: {
-
+        
         id: string;
-
+        
         title: string;
-
+        
     };
-
+    
     goal: {
 
         id: string;

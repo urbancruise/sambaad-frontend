@@ -70,7 +70,7 @@ export const useEmployeeGoals = () => {
 
         (state: RootState) =>
 
-            state.hodManagerGoals
+            state.hodTeamLeadGoals
 
     );
 
