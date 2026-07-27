@@ -16,4 +16,5 @@ export interface OrgUserSummary {
     totalActivities: number;
     completedActivities: number;
     overdueActivities: number;
+    avatarUrl? : string
 }
