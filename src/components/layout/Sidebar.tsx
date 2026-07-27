@@ -246,7 +246,7 @@ export default function Sidebar({ items }: SidebarProps) {
       label: 'Dashboard', 
       subLabel: 'Overview Console', 
       icon: Layers, 
-      url: `/${activeTeam}`,
+      url: `#`,
       color: 'orange'
     },
     { 
@@ -260,21 +260,21 @@ export default function Sidebar({ items }: SidebarProps) {
       label: 'Communication', 
       subLabel: 'Chat & Forums', 
       icon: MessageSquare, 
-      url: `${basePath}/#`,
+      url: `#`,
       color: 'blue'
     },
     { 
       label: 'Meetings', 
       subLabel: 'Room Scheduling', 
       icon: Users, 
-      url: `${basePath}/#`,
+      url: `#`,
       color: 'purple'
     },
     { 
       label: 'Email', 
       subLabel: 'Outbox & Sync', 
       icon: Mail, 
-      url: `${basePath}/#`,
+      url: `#`,
       color: 'yellow'
     },
   ];

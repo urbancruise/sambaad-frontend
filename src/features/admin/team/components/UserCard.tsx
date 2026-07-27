@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { OrgUserSummary, UserRole } from "../types";
 
 interface Props {
@@ -10,11 +9,11 @@ interface Props {
 
 const roleBadgeStyles: Record<UserRole, string> = {
     SUPER_ADMIN: "bg-slate-900 text-white",
-    HOD: "bg-purple-100 text-purple-700",
-    ZONAL_HEAD: "bg-purple-100 text-purple-700",
-    MANAGER: "bg-cyan-100 text-cyan-700",
-    TEAM_LEAD: "bg-amber-100 text-amber-700",
-    EMPLOYEE: "bg-slate-100 text-slate-600",
+    HOD: "bg-slate-800 text-white",
+    ZONAL_HEAD: "bg-slate-800 text-white",
+    MANAGER: "bg-cyan-700 text-white",
+    TEAM_LEAD: "bg-slate-700 text-white",
+    EMPLOYEE: "bg-slate-800 text-white",
 };
 
 const roleLabels: Record<UserRole, string> = {
@@ -27,63 +26,89 @@ const roleLabels: Record<UserRole, string> = {
 };
 
 export default function UserCard({ user }: Props) {
+    // Generate initials or fallback avatar if user image isn't available
+    const initials = user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
+
     return (
         <Link
             href={`/admin/team/${user.id}`}
-            className="block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition"
+            className="block rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm hover:shadow-md transition text-left"
         >
-            <div className="flex items-start justify-between">
-                <div>
-                    <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-slate-800">{user.fullName}</h3>
-                        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${roleBadgeStyles[user.role]}`}>
-                            {roleLabels[user.role]}
-                        </span>
+            {/* Top row: Avatar, Name, Role badge, Status */}
+            <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-slate-200 flex items-center justify-center font-semibold text-slate-600 text-xs">
+                        {user.avatarUrl ? (
+                            <img src={user.avatarUrl} alt={user.fullName} className="h-full w-full object-cover" />
+                        ) : (
+                            initials
+                        )}
                     </div>
-                    <p className="text-sm text-slate-500 mt-1">{user.email}</p>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <h3 className="text-sm font-bold text-slate-800 truncate">{user.fullName}</h3>
+                            <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${roleBadgeStyles[user.role]}`}>
+                                {roleLabels[user.role]}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            user.isActive
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-slate-100 text-slate-500"
-                        }`}
-                    >
-                        {user.isActive ? "Active" : "Inactive"}
-                    </span>
-                    <ChevronRight size={18} className="text-slate-400" />
-                </div>
+
+                <span
+                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold flex-shrink-0 ${
+                        user.isActive
+                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                            : "bg-slate-100 text-slate-500"
+                    }`}
+                >
+                    {user.isActive ? "Active" : "Inactive"}
+                </span>
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-                <div>
-                    <p className="text-xs text-slate-500">Goals</p>
-                    <p className="font-semibold text-slate-800">
+            {/* Metrics Row with vertical separators */}
+            <div className="mt-4 grid grid-cols-3 text-center border-t border-b border-slate-100 py-2.5">
+                <div className="border-r border-slate-100 px-1">
+                    <p className="text-[11px] text-slate-400">Goals</p>
+                    <p className="text-xs font-semibold text-slate-800 mt-0.5">
                         {user.completedGoals}/{user.totalGoals}
                     </p>
                 </div>
-                <div>
-                    <p className="text-xs text-slate-500">Tasks</p>
-                    <p className="font-semibold text-slate-800">
+                <div className="border-r border-slate-100 px-1">
+                    <p className="text-[11px] text-slate-400">Tasks</p>
+                    <p className="text-xs font-semibold text-slate-800 mt-0.5">
                         {user.completedTasks}/{user.totalTasks}
                     </p>
                 </div>
-                <div>
-                    <p className="text-xs text-slate-500">Activities</p>
-                    <p className="font-semibold text-slate-800">
-                        {user.completedActivities}/{user.totalActivities}
+                <div className="px-1">
+                    <p className="text-[11px] text-slate-400">Activities</p>
+                    <p className="text-xs font-semibold text-slate-800 mt-0.5">
+                        {user.completedActivities ?? user.totalActivities}
                     </p>
                 </div>
             </div>
 
-            <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                <span className="text-xs text-slate-500">Performance Score</span>
-                <span className="font-bold text-emerald-600">{user.performanceScore}</span>
+            {/* Performance Score and mini graph indicator visual representation */}
+            <div className="mt-3 flex items-center justify-between text-xs">
+                <span className="text-slate-400 text-[11px]">Performance Score</span>
+                <div className="flex items-center gap-2">
+                    <span className="font-bold text-emerald-600">{user.performanceScore}</span>
+                    {/* Visual mini bar graph representation matching the reference image style */}
+                    <div className="flex items-end gap-0.5 h-3">
+                        <span className="w-0.5 bg-emerald-500 h-1.5 rounded-full"></span>
+                        <span className="w-0.5 bg-emerald-500 h-2 rounded-full"></span>
+                        <span className="w-0.5 bg-emerald-500 h-2.5 rounded-full"></span>
+                        <span className="w-0.5 bg-emerald-500 h-3 rounded-full"></span>
+                    </div>
+                </div>
             </div>
 
             {user.overdueActivities > 0 && (
-                <p className="mt-2 text-xs font-semibold text-rose-600">
+                <p className="mt-2 text-[11px] font-semibold text-rose-600">
                     {user.overdueActivities} overdue activit{user.overdueActivities === 1 ? "y" : "ies"}
                 </p>
             )}

@@ -14,6 +14,8 @@ import ActivityPage
 from "../activities/page/ActivityPage";
 import TimelinePage
 from "../timeline/page/TimelinePage";
+import UserPerformanceDashboard
+from "@/src/features/performance/page/UserPerformanceDashboard";
 
 import { useEmployeeProfile } from "../hooks/useEmployeeProfile";
 
@@ -126,6 +128,11 @@ export default function EmployeeProfilePage() {
 {tab === "timeline" && (
 
     <TimelinePage />
+
+)}
+{tab === "performance" && (
+
+    <UserPerformanceDashboard userId={profile.profile.id} />
 
 )}
 

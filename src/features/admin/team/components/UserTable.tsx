@@ -11,7 +11,7 @@ interface Props {
 export default function UserTable({ users, loading }: Props) {
     if (loading) {
         return (
-            <div className="rounded-xl border border-slate-200 bg-white p-10 text-center">
+            <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-slate-500">
                 Loading users...
             </div>
         );
@@ -29,7 +29,7 @@ export default function UserTable({ users, loading }: Props) {
     }
 
     return (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {users.map((u) => (
                 <UserCard key={u.id} user={u} />
             ))}

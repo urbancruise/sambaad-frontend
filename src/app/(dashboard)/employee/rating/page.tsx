@@ -31,7 +31,7 @@ const rowColors = [
 const SCORE_OPTIONS = [1, 2, 3, 4, 5];
 
 type RoleRow = {
-  role: "TS" | "TL";
+  role: "Self" | "TL";
   targetsVsActual: string;
   achievementPercent: number;
   salesImprovementIdeas: string;
@@ -59,7 +59,7 @@ const initialEmployees: Employee[] = [
     name: "AJAY",
     rows: [
       {
-        role: "TS",
+        role: "Self",
         targetsVsActual: "",
         achievementPercent: 100,
         salesImprovementIdeas: "",
@@ -95,7 +95,7 @@ const initialEmployees: Employee[] = [
     name: "RAHUL",
     rows: [
       {
-        role: "TS",
+        role: "Self",
         targetsVsActual: "",
         achievementPercent: 100,
         salesImprovementIdeas: "",

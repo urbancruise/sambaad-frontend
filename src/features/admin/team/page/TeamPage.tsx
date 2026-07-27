@@ -40,25 +40,26 @@ export default function AdminTeamPage() {
                 </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1 max-w-sm">
+            {/* Toolbar layout matching the image reference */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <div className="relative w-full md:max-w-xs">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search by name..."
-                        className="w-full rounded-xl border border-slate-200 pl-9 pr-4 py-2.5 text-sm focus:border-emerald-500 focus:outline-none"
+                        className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2 text-sm focus:border-slate-400 focus:outline-none"
                     />
                 </div>
 
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
                     {ROLE_FILTERS.map((f) => (
                         <button
                             key={f.value}
                             onClick={() => setRoleFilter(f.value)}
-                            className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                            className={`rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition ${
                                 roleFilter === f.value
-                                    ? "bg-slate-900 text-white"
+                                    ? "bg-slate-900 text-white shadow-sm"
                                     : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                             }`}
                         >
