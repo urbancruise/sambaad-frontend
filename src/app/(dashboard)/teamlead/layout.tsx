@@ -4,6 +4,7 @@ import React from "react";
 
 import Navbar from "@/src/components/layout/NavBar";
 import Sidebar, { SidebarItemData } from "@/src/components/layout/Sidebar";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 import {
     LayoutDashboard,
@@ -97,11 +98,14 @@ const navItems = [
         icon: Users,
         url: "/teamlead/team"
     },
+    
+        { label: "Calendar", icon: CalendarIcon, url: "/teamlead/calendar" },
+
 
     {
         label: "Ratings",
         icon: Calendar,
-        url: "/employee/rating"
+        url: "#"
     },
 
 ];

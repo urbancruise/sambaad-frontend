@@ -19,10 +19,10 @@ export default function ProtectedRoute({ children, roles }: Props) {
     if (loading) return;
 
     // 2. Redirect to landing/login if authentication fails
-    if (!isAuthenticated) {
-      router.replace("/");
-      return;
-    }
+    // if (!isAuthenticated) {
+    //   router.replace("/");
+    //   return;
+    // }
 
     // 3. Optional: Un-comment this to protect roles once loading is finished
     if (user && !roles.includes(user.role)) {

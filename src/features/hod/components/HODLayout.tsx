@@ -15,24 +15,24 @@ import {
     Calendar,
     Bell,
     CheckSquare,
-    Layers, 
+    Layers,
     MessageSquare,
     Mail
 } from "lucide-react";
 
-const adminSidebarItems: SidebarItemData[] = [
+const hodSidebarItems: SidebarItemData[] = [
   {
     label: 'Dashboard',
-    subLabel: 'Admin Console',
+    subLabel: 'Manager Console',
     icon: Layers,
     url: `#`,
     color: 'orange'
   },
   {
     label: 'PMS',
-    subLabel: 'Organization',
+    subLabel: 'Team Management',
     icon: CheckSquare,
-    url: `/admin/team`,
+    url: `/hod/team`,
     color: 'green'
   },
   {
@@ -63,54 +63,54 @@ const navItems = [
     {
         label: "Dashboard",
         icon: LayoutDashboard,
-        url: "/admin/dashboard"
-    },
-    {
-        label: "Organization",
-        icon: LayoutDashboard,
-        url: "/admin/team"
+        url: "/hod/dashboard"
     },
 
     {
         label: "Goals",
         icon: Target,
-        url: "/admin/goals"
+        url: "/hod/goals"
     },
 
     {
         label: "Tasks",
         icon: ClipboardList,
-        url: "/admin/tasks"
+        url: "/hod/tasks"
     },
 
     {
         label: "Activities",
         icon: Bell,
-        url: "/admin/activities"
+        url: "/hod/activities"
     },
 
     {
         label: "Performance",
         icon: BarChart3,
-        url: "/admin/performance"
+        url: "/hod/performance"
     },
 
+    {
+        label: "TeamLeads",
+        icon: Users,
+        url: "/hod/team"
+    },
+        { 
+            label: "Calendar", 
+            icon: CalendarIcon, 
+            url: "/hod/calendar" 
+        },
 
-{
-    label: "Calendar",
-    icon: CalendarIcon,
-    url: "/admin/calendar"   
-},
 
     {
         label: "Ratings",
         icon: Calendar,
-        url: "/admin/rating"
+        url: "/hod/rating"
     },
 
 ];
 
-export default function AdminLayout({
+export default function ManagerLayout({
     children,
 }: {
     children: React.ReactNode;
@@ -124,7 +124,7 @@ export default function AdminLayout({
 
             <div className="flex flex-1 overflow-hidden">
 
-                <Sidebar items={adminSidebarItems} />
+                <Sidebar items={hodSidebarItems} />
 
                 <main className="flex-1 overflow-y-auto">
 

@@ -43,10 +43,8 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
-    // Check if the response is a 401 (Unauthorized) and has not already been retried
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       
-      // If we are already refreshing the token, queue this request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -66,14 +64,12 @@ api.interceptors.response.use(
       try {
         console.log("Access token expired. Attempting silent token refresh...");
         
-        // Request a new access token using your HTTP-only refresh cookie
         const response = await axios.post(
           `${api.defaults.baseURL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
 
-        // Capture new access token from your custom ApiResponseBody wrapper
         const { accessToken } = response.data.data;
         
         setAccessToken(accessToken);

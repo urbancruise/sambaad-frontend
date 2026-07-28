@@ -1,5 +1,5 @@
-import ManagerLayout from "@/src/features/manager/components/ManagerLayout";
+import HODLayout from "@/src/features/hod/components/HODLayout"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-    return <ManagerLayout>{children}</ManagerLayout>;
+    return <HODLayout>{children} </HODLayout>;
 }

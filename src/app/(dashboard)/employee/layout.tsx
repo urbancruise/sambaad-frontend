@@ -4,11 +4,14 @@ import Sidebar from '@/src/components/layout/Sidebar';
 import Navbar from '@/src/components/layout/NavBar';
 import { LayoutDashboard, Users, Settings, Star } from "lucide-react";
 // import AdvancedLocationFilter from '@/src/components/dashboard/AdvancedLocationFilter';
+import { Calendar as CalendarIcon } from "lucide-react";
+
 const customTeamLinks = [
     { label: "Goal", icon: LayoutDashboard, url: "/employee/goals" },
     { label: "Task", icon: Users, url: "/employee/tasks" },
     { label: "Activity", icon: Settings, url: "/employee/activities" },
     { label: "Rating", icon: Star, url: "/employee/rating" },
+    { label: "Calendar", icon: CalendarIcon, url: "/employee/calendar" },
   ];
 
 export default function DashboardLayout({

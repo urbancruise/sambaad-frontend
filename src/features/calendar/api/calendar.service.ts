@@ -87,4 +87,29 @@ export const rescheduleCalendarEvent = async (
     return response.data.data;
 };
 
+/**
+ * Generic "view someone else's calendar" — used by TL/Manager/HOD/Admin
+ * to view a junior's schedule. Gated server-side by isSelfOrSubordinate.
+ */
+export const getUserCalendar = async (
+    userId: string | number,
+    params?: Pick<CalendarQuery, "start" | "end">
+) => {
+    const response = await api.get(`/calendar/${userId}/events`, { params });
+    return response.data.data;
+};
 
+export const getUserTodayAgenda = async (userId: string | number) => {
+    const response = await api.get(`/calendar/${userId}/today`);
+    return response.data.data;
+};
+
+export const getUserWeeklyAgenda = async (
+    userId: string | number,
+    date = new Date().toISOString()
+) => {
+    const response = await api.get(`/calendar/${userId}/week`, {
+        params: { date },
+    });
+    return response.data.data;
+};
