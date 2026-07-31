@@ -45,9 +45,9 @@ export default function Navbar({ navItems = defaultNavItems }: { navItems?: NavI
       <div className="flex items-center justify-between h-13">
 
         {/* Left: Brand */}
-        <div className=" flex items-center transition-all duration-300 px-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-black text-white text-lg">
-            S
+        <div className=" flex items-center transition-all duration-300 px-3">
+          <div className="w-15 h-12 rounded-xl bg-gradient-to-tr from-emerald-100 to-teal-500 flex items-center justify-center font-black text-white text-lg">
+            <img className="p-0.5 pt-0" src="/assets/SITE-ICON.png" alt="S" />
           </div>
           <div className="ml-4 transition-all duration-350 overflow-hidden opacity-100">
             <h2 className="font-black text-slate-100 text-x tracking-tight leading-none uppercase">Samvaad</h2>

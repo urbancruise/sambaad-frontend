@@ -18,7 +18,6 @@ export default function CalendarGrid({
     events,
 
 }: Props) {
-
     const firstDay =
         new Date(
             month.getFullYear(),
@@ -48,16 +47,17 @@ export default function CalendarGrid({
         days.push(day);
 
     }
-    const sortedEvents = [...events].sort(
+  const PRIORITY_ORDER = {
+  CRITICAL: 4,
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1,
+};
 
-    (a, b) =>
-
-        a.priority.localeCompare(
-
-            b.priority
-
-        )
-
+const sortedEvents = [...events].sort(
+  (a, b) =>
+    (PRIORITY_ORDER[b.priority as keyof typeof PRIORITY_ORDER] ?? 0) -
+    (PRIORITY_ORDER[a.priority as keyof typeof PRIORITY_ORDER] ?? 0)
 );
 
     return (
@@ -111,34 +111,15 @@ export default function CalendarGrid({
                     days.map(day => (
 
                         <CalendarDay
-
-                            key={day.toISOString()}
-
-                            date={day}
-
-                            currentMonth={
-                                month.getMonth()
-                            }
-
-                            events={
-
-                                sortedEvents.filter(
-
-                                    e =>
-
-                                        new Date(
-                                            e.startDate
-                                        ).toDateString()
-
-                                        ===
-
-                                        day.toDateString()
-
-                                )
-
-                            }
-
-                        />
+    key={day.toISOString()}
+    date={day}
+    currentMonth={month.getMonth()}
+    events={sortedEvents.filter(
+        (e) =>
+            new Date(e.startDate).toDateString() ===
+            day.toDateString()
+    )}
+/>
 
                     ))
 

@@ -12,7 +12,7 @@ import {
     Target,
     ClipboardList,
     BarChart3,
-    Calendar,
+    Star,
     Bell,
     CheckSquare,
     Layers, 
@@ -104,7 +104,7 @@ const navItems = [
 
     {
         label: "Ratings",
-        icon: Calendar,
+        icon: Star,
         url: "/admin/rating"
     },
 

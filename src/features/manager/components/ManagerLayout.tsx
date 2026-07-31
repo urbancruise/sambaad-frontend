@@ -4,7 +4,7 @@ import React from "react";
 
 import Navbar from "@/src/components/layout/NavBar";
 import Sidebar, { SidebarItemData } from "@/src/components/layout/Sidebar";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Star  } from "lucide-react";
 
 import {
     LayoutDashboard,
@@ -104,7 +104,7 @@ const navItems = [
 
     {
         label: "Ratings",
-        icon: Calendar,
+        icon: Star,
         url: "/manager/rating"
     },
 
@@ -128,7 +128,7 @@ export default function ManagerLayout({
 
                 <main className="flex-1 overflow-y-auto">
 
-                    <div className="max-w-[100%] mx-auto ">
+                    <div className="max-w-full mx-auto ">
 
                         {children}
 
