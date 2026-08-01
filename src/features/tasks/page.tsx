@@ -7,6 +7,12 @@ import { useTasks } from "./hooks/useTask";
 import { setLoading, setTasks } from "./store/taskSlice";
 import { getTasks } from "./api/task.service";
 import { useGoals } from "@/src/features/goals/hooks/useGoals";
+import { getGoals } from "@/src/features/goals/api/goal.service";
+import {
+    fetchGoalsStart,
+    fetchGoalsSuccess,
+    fetchGoalsFailure,
+} from "@/src/features/goals/store/goalSlice";
 import TaskList from "./components/TaskList";
 import CreateTaskModal from "./components/CreateTaskModal";
 import { Plus, Layers } from "lucide-react";
@@ -34,7 +40,29 @@ export default function TaskPage() {
                 dispatch(setLoading(false));
             }
         };
+
+        // This page groups tasks BY goal (see TaskList/TaskGroup below),
+        // so it needs goals loaded too — previously this only happened
+        // on the Goals page itself, meaning landing here directly
+        // (without visiting Goals first) showed nothing even though
+        // tasks had loaded fine.
+        const loadGoals = async () => {
+            dispatch(fetchGoalsStart());
+            try {
+                const response = await getGoals();
+                dispatch(
+                    fetchGoalsSuccess({
+                        goals: response.goals,
+                        pagination: response.pagination,
+                    })
+                );
+            } catch (error: any) {
+                dispatch(fetchGoalsFailure(error.message));
+            }
+        };
+
         loadTasks();
+        loadGoals();
     }, [dispatch]);
 
     return (

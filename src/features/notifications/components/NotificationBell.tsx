@@ -1,18 +1,39 @@
 "use client";
 
 import { Bell } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
+import { AppDispatch } from "@/src/lib/store";
+import { getNotifications } from "../api/notification.service";
+import { setNotifications } from "../store/notificationSlice";
 import { useNotifications } from "../hooks/useNotificaions";
 import NotificationDropdown from "./NotificationDropdown";
 
 export default function NotificationBell() {
 
-    const [open, setOpen] =
-        useState(false);
+    const dispatch = useDispatch<AppDispatch>();
+    const [open, setOpen] = useState(false);
 
-    const { unread } =
-        useNotifications();
+    const { unread } = useNotifications();
+
+    // Was only ever fetched when the dropdown opened (inside
+    // NotificationDropdown's own effect) — meaning the badge count
+    // stayed at 0 until the user clicked the bell once. Now fetches
+    // as soon as the bell mounts, so the count is right immediately.
+    useEffect(() => {
+        const load = () => {
+            getNotifications()
+                .then((data) => dispatch(setNotifications(data)))
+                .catch(() => {});
+        };
+
+        load();
+        // Light polling so new notifications show up without needing a
+        // manual refresh — 60s is a reasonable balance for a badge count.
+        const interval = setInterval(load, 60000);
+        return () => clearInterval(interval);
+    }, [dispatch]);
 
     return (
 

@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/src/lib/store";
 import { useActivities } from "./hooks/useActivities";
 import { useTasks } from "../tasks/hooks/useTask";
+import { setLoading as setTasksLoading, setTasks } from "../tasks/store/taskSlice";
+import { getTasks } from "../tasks/api/task.service";
 import {
     fetchActivitiesStart,
     fetchActivitiesSuccess,
@@ -27,6 +29,7 @@ export default function ActivityPage() {
 
     useEffect(() => {
         loadActivities();
+        loadTasks();
     }, [dispatch]);
 
     const loadActivities = async () => {
@@ -36,6 +39,22 @@ export default function ActivityPage() {
             dispatch(fetchActivitiesSuccess(data));
         } catch {
             dispatch(fetchActivitiesFailure("Unable to load activities."));
+        }
+    };
+
+    // This page groups activities BY task (see TaskActivityList below), so
+    // it needs tasks loaded too — previously this only happened on the
+    // Tasks page itself, meaning landing here directly (without visiting
+    // Tasks first) showed nothing even though activities had loaded fine.
+    const loadTasks = async () => {
+        try {
+            dispatch(setTasksLoading(true));
+            const data = await getTasks();
+            dispatch(setTasks(data));
+        } catch (error) {
+            console.error(error);
+        } finally {
+            dispatch(setTasksLoading(false));
         }
     };
 
