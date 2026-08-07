@@ -1,25 +1,24 @@
 "use client";
 
 import React from "react";
-
-import Navbar from "@/src/components/layout/NavBar";
+import Navbar, { NavItem, WorkspaceItem } from "@/src/components/layout/NavBar";
 import Sidebar, { SidebarItemData } from "@/src/components/layout/Sidebar";
-import { Calendar as CalendarIcon } from "lucide-react";
-
 import {
-    LayoutDashboard,
-    Users,
-    Target,
-    ClipboardList,
-    BarChart3,
-    Star,
-    Bell,
-    CheckSquare,
-    Layers,
-    MessageSquare,
-    Mail
+  LayoutDashboard,
+  Users,
+  Target,
+  ClipboardList,
+  BarChart3,
+  Star,
+  Bell,
+  CheckSquare,
+  Layers,
+  MessageSquare,
+  Mail,
+  Calendar as CalendarIcon
 } from "lucide-react";
 
+// ── Sidebar Navigation Items ──
 const hodSidebarItems: SidebarItemData[] = [
   {
     label: 'Dashboard',
@@ -53,93 +52,83 @@ const hodSidebarItems: SidebarItemData[] = [
     label: 'Email',
     subLabel: 'Outbox & Sync',
     icon: Mail,
-    url: `#`,
+    url: `hod/email`,
     color: 'yellow'
   },
 ];
 
-const navItems = [
-
-    {
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        url: "/hod/dashboard"
-    },
-
-    {
-        label: "Goals",
-        icon: Target,
-        url: "/hod/goals"
-    },
-
-    {
-        label: "Tasks",
-        icon: ClipboardList,
-        url: "/hod/tasks"
-    },
-
-    {
-        label: "Activities",
-        icon: Bell,
-        url: "/hod/activities"
-    },
-
-    {
-        label: "Performance",
-        icon: BarChart3,
-        url: "/hod/performance"
-    },
-
-    {
-        label: "TeamLeads",
-        icon: Users,
-        url: "/hod/team"
-    },
-        { 
-            label: "Calendar", 
-            icon: CalendarIcon, 
-            url: "/hod/calendar" 
-        },
-
-
-    {
-        label: "Ratings",
-        icon: Star,
-        url: "/hod/rating"
-    },
-
+// ── HOD / Manager Workspace Dropdown Items ──
+const hodWorkspaceItems: WorkspaceItem[] = [
+  {
+    label: "Goals",
+    url: "/hod/goals",
+    icon: Target,
+    desc: "Track department objectives & key results"
+  },
+  {
+    label: "Tasks",
+    url: "/hod/tasks",
+    icon: ClipboardList,
+    desc: "Manage active deliverables and assignments"
+  },
+  {
+    label: "Activities",
+    url: "/hod/activities",
+    icon: Bell,
+    desc: "Real-time department updates & audit logs"
+  },
+  {
+    label: "Performance",
+    url: "/hod/performance",
+    icon: BarChart3,
+    desc: "Analytics & team productivity metrics"
+  },
 ];
 
+// ── Core HOD Top Nav Items ──
+const hodNavItems: NavItem[] = [
+  {
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    url: "/hod/dashboard"
+  },
+  {
+    label: "Team Leads",
+    icon: Users,
+    url: "/hod/team"
+  },
+  {
+    label: "Calendar",
+    icon: CalendarIcon,
+    url: "/hod/calendar"
+  },
+  {
+    label: "Ratings",
+    icon: Star,
+    url: "/hod/rating"
+  },
+];
+
+
 export default function ManagerLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Navbar with HOD-specific Nav & Workspace items */}
+      <Navbar navItems={hodNavItems} workspaceItems={hodWorkspaceItems} />
 
-    return (
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar items={hodSidebarItems} />
 
-        <div className="flex flex-col h-screen overflow-hidden">
-
-            <Navbar navItems={navItems} />
-
-            <div className="flex flex-1 overflow-hidden">
-
-                <Sidebar items={hodSidebarItems} />
-
-                <main className="flex-1 overflow-y-auto">
-
-                    <div className="max-w-[100%] mx-auto ">
-
-                        {children}
-
-                    </div>
-
-                </main>
-
-            </div>
-
-        </div>
-
-    );
-
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-[100%] mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }

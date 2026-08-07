@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import Navbar from "@/src/components/layout/NavBar";
+import Navbar, {WorkspaceItem } from "@/src/components/layout/NavBar";
 import Sidebar, { SidebarItemData } from "@/src/components/layout/Sidebar";
 import { Calendar as CalendarIcon, Star  } from "lucide-react";
 
@@ -12,7 +12,6 @@ import {
     Target,
     ClipboardList,
     BarChart3,
-    Calendar,
     Bell,
     CheckSquare,
     Layers,
@@ -53,8 +52,35 @@ const managerSidebarItems: SidebarItemData[] = [
     label: 'Email',
     subLabel: 'Outbox & Sync',
     icon: Mail,
-    url: `#`,
+    url: `/manager/email`,
     color: 'yellow'
+  },
+];
+
+const managerWorkspaceItems: WorkspaceItem[] = [
+  {
+    label: "Goals",
+    url: "/manager/goals",
+    icon: Target,
+    desc: "Track company-wide objectives & key results"
+  },
+  {
+    label: "Tasks",
+    url: "/manager/tasks",
+    icon: ClipboardList,
+    desc: "Oversee project deliverables & assignments"
+  },
+  {
+    label: "Activities",
+    url: "/manager/activities",
+    icon: Bell,
+    desc: "Monitor system logs & audit trails"
+  },
+  {
+    label: "Performance",
+    url: "/manager/performance",
+    icon: BarChart3,
+    desc: "Analyze company performance metrics"
   },
 ];
 
@@ -64,30 +90,6 @@ const navItems = [
         label: "Dashboard",
         icon: LayoutDashboard,
         url: "/manager/dashboard"
-    },
-
-    {
-        label: "Goals",
-        icon: Target,
-        url: "/manager/goals"
-    },
-
-    {
-        label: "Tasks",
-        icon: ClipboardList,
-        url: "/manager/tasks"
-    },
-
-    {
-        label: "Activities",
-        icon: Bell,
-        url: "/manager/activities"
-    },
-
-    {
-        label: "Performance",
-        icon: BarChart3,
-        url: "/manager/performance"
     },
 
     {
@@ -120,7 +122,7 @@ export default function ManagerLayout({
 
         <div className="flex flex-col h-screen overflow-hidden">
 
-            <Navbar navItems={navItems} />
+            <Navbar navItems={navItems} workspaceItems={managerWorkspaceItems}  />
 
             <div className="flex flex-1 overflow-hidden">
 

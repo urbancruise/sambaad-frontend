@@ -253,7 +253,7 @@ export default function Sidebar({ items }: SidebarProps) {
       label: 'PMS', 
       subLabel: 'Task & Performance', 
       icon: CheckSquare, 
-      url: `/employee/dashboard`,
+      url: `#`,
       color: 'green'
     },
     { 
@@ -262,7 +262,7 @@ export default function Sidebar({ items }: SidebarProps) {
       icon: MessageSquare, 
       url: `#`,
       color: 'blue'
-    },
+    }, 
     { 
       label: 'Meetings', 
       subLabel: 'Room Scheduling', 

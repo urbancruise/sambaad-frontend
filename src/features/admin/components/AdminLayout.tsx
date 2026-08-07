@@ -1,25 +1,24 @@
 "use client";
 
 import React from "react";
-
-import Navbar from "@/src/components/layout/NavBar";
+import Navbar, { NavItem, WorkspaceItem } from "@/src/components/layout/NavBar";
 import Sidebar, { SidebarItemData } from "@/src/components/layout/Sidebar";
-import { Calendar as CalendarIcon } from "lucide-react";
-
 import {
-    LayoutDashboard,
-    Users,
-    Target,
-    ClipboardList,
-    BarChart3,
-    Star,
-    Bell,
-    CheckSquare,
-    Layers, 
-    MessageSquare,
-    Mail
+  LayoutDashboard,
+  Building2,
+  Target,
+  ClipboardList,
+  BarChart3,
+  Star,
+  Bell,
+  CheckSquare,
+  Layers,
+  MessageSquare,
+  Mail,
+  Calendar as CalendarIcon
 } from "lucide-react";
 
+// ── Sidebar Navigation Items ──
 const adminSidebarItems: SidebarItemData[] = [
   {
     label: 'Dashboard',
@@ -45,7 +44,7 @@ const adminSidebarItems: SidebarItemData[] = [
   {
     label: 'Meetings',
     subLabel: 'Room Scheduling',
-    icon: Users,
+    icon: Building2,
     url: `#`,
     color: 'purple'
   },
@@ -53,93 +52,82 @@ const adminSidebarItems: SidebarItemData[] = [
     label: 'Email',
     subLabel: 'Outbox & Sync',
     icon: Mail,
-    url: `#`,
+    url: `/admin/email`,
     color: 'yellow'
   },
 ];
 
-const navItems = [
+// ── Admin Workspace Dropdown Items ──
+const adminWorkspaceItems: WorkspaceItem[] = [
+  {
+    label: "Goals",
+    url: "/admin/goals",
+    icon: Target,
+    desc: "Track company-wide objectives & key results"
+  },
+  {
+    label: "Tasks",
+    url: "/admin/tasks",
+    icon: ClipboardList,
+    desc: "Oversee project deliverables & assignments"
+  },
+  {
+    label: "Activities",
+    url: "/admin/activities",
+    icon: Bell,
+    desc: "Monitor system logs & audit trails"
+  },
+  {
+    label: "Performance",
+    url: "/admin/performance",
+    icon: BarChart3,
+    desc: "Analyze company performance metrics"
+  },
+];
 
-    {
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        url: "/admin/dashboard"
-    },
-    {
-        label: "Organization",
-        icon: LayoutDashboard,
-        url: "/admin/team"
-    },
-
-    {
-        label: "Goals",
-        icon: Target,
-        url: "/admin/goals"
-    },
-
-    {
-        label: "Tasks",
-        icon: ClipboardList,
-        url: "/admin/tasks"
-    },
-
-    {
-        label: "Activities",
-        icon: Bell,
-        url: "/admin/activities"
-    },
-
-    {
-        label: "Performance",
-        icon: BarChart3,
-        url: "/admin/performance"
-    },
-
-
-{
+// ── Core Admin Top Nav Items ──
+const adminNavItems: NavItem[] = [
+  {
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    url: "/admin/dashboard"
+  },
+  {
+    label: "Organization",
+    icon: Building2,
+    url: "/admin/team"
+  },
+  {
     label: "Calendar",
     icon: CalendarIcon,
-    url: "/admin/calendar"   
-},
-
-    {
-        label: "Ratings",
-        icon: Star,
-        url: "/admin/rating"
-    },
-
+    url: "/admin/calendar"
+  },
+  {
+    label: "Ratings",
+    icon: Star,
+    url: "/admin/rating"
+  },
 ];
 
 export default function AdminLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
+  return (
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Dynamic Navbar with Admin Nav & Workspace items */}
+      <Navbar navItems={adminNavItems} workspaceItems={adminWorkspaceItems} />
 
-    return (
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar items={adminSidebarItems} />
 
-        <div className="flex flex-col h-screen overflow-hidden">
-
-            <Navbar navItems={navItems} />
-
-            <div className="flex flex-1 overflow-hidden">
-
-                <Sidebar items={adminSidebarItems} />
-
-                <main className="flex-1 overflow-y-auto">
-
-                    <div className="max-w-[100%] mx-auto ">
-
-                        {children}
-
-                    </div>
-
-                </main>
-
-            </div>
-
-        </div>
-
-    );
-
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-[100%] mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
