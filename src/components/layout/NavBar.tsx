@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import api from '@/src/lib/axios';
 import NotificationBell from "@/src/features/notifications/components/NotificationBell";
+import ThemeToggle from "@/src/components/theme/ThemeToggle";
 
 export interface NavItem {
   label: string;
@@ -32,10 +33,10 @@ export interface WorkspaceItem {
 }
 
 const defaultNavItems: NavItem[] = [
-  { label: 'IT Team',     icon: Layers, url: '/teams/it' },
-  { label: 'Sales Team',  icon: Layers, url: '/teams/sales' },
-  { label: 'HR Team',     icon: Layers, url: '/teams/hr' },
-  { label: 'SEO Team',    icon: Layers, url: '/teams/seo' },
+  { label: 'IT Team',     icon: Layers, url: '#'  },
+  { label: 'Sales Team',  icon: Layers, url: '#', },
+  { label: 'HR Team',     icon: Layers, url: '#',  },
+  { label: 'SEO Team',    icon: Layers, url: '#', },
 ];
 
 interface NavbarProps {
@@ -168,6 +169,7 @@ export default function Navbar({
 
           {/* 3. Right Side Controls */}
           <div className="flex items-center gap-4 shrink-0">
+             <ThemeToggle />
             <NotificationBell />
 
             {/* Profile Dropdown */}
