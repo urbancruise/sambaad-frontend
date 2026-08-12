@@ -1,10 +1,4 @@
-import { TeamLeaderboard } from "../types";
-
-interface Props {
-  data: TeamLeaderboard[];
-}
-
-const AttentionCard = ({ data }: Props) => {
+const AttentionCard = () => {
   return (
     <div className="bg-[#fff5f5] border border-rose-200/60 rounded-2xl p-5 shadow-sm h-full flex flex-col justify-between">
       <h2 className="font-extrabold text-lg text-rose-900 tracking-tight mb-4">

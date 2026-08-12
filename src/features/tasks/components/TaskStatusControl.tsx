@@ -12,8 +12,6 @@ type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
 interface Props {
     task: Task;
-    /** Pass the logged-in user's id to only render for the assignee. */
-    currentUserId: string;
 }
 
 /**
@@ -21,11 +19,10 @@ interface Props {
  * that hits PATCH /tasks/:id/status. Use this instead of EditTaskModal
  * for anyone who isn't the task's creator.
  */
-export default function TaskStatusControl({ task, currentUserId }: Props) {
+export default function TaskStatusControl({ task }: Props) {
     const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState(false);
 
-    // if (task.assignedToId !== currentUserId) return null;
 
     const handleChange = async (status: TaskStatus) => {
         try {

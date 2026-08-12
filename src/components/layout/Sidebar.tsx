@@ -2,9 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useParams } from 'next/navigation';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '@/src/lib/store';
+import { usePathname } from 'next/navigation';
 import { 
   Layers, 
   CheckSquare, 
@@ -236,13 +234,6 @@ interface SidebarProps {
 
 export default function Sidebar({ items }: SidebarProps) {
   const pathname = usePathname();
-  const params = useParams();
-
-  // Dynamically obtain current workspace active team
-  const activeTeam = params?.team || 'it-team';
-  const basePath = `/${activeTeam}`;
-
-  // Default fallback items if no `items` prop is passed
   const defaultItems: SidebarItemData[] = [
     { 
       label: 'Dashboard', 

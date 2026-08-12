@@ -13,7 +13,6 @@ import TimelineCard from "./cards/TimelineCard";
 import DashboardSkeleton from "./DashboardSkeleton";
 import DashboardFilters from "./DashboardFilters";
 import MonthCalendar from "@/src/features/calendar/components/MonthlyCalendar";
-// import EmployeeQuickActions from "./EmployeeQuickActions";
 import { useEmployeeDashboardData } from "../hooks/useEmployeeDashboardData";
 
 
@@ -24,7 +23,6 @@ export default function EmployeeDashboard() {
         loading,
         updatingActivityId,
         completeTodayActivity,
-        refreshDashboard,
     } = useEmployeeDashboardData();
 
     const todayWork = useMemo(() => {
@@ -65,10 +63,6 @@ export default function EmployeeDashboard() {
                         Performance metrics and activity overview
                     </p>
                 </div>
-{/* 
-                <EmployeeQuickActions
-                    onChanged={refreshDashboard}
-                /> */}
             </div>
 
             <OverviewCard

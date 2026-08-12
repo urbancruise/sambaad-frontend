@@ -20,7 +20,7 @@ export default function EmailList({ folder }: Props) {
     const {
         emails, pagination, loading, error,
         search, setSearch, order, setOrder,
-        page, setPage, refresh, setEmails,
+        setPage, refresh, setEmails,
     } = useFolderEmails(folder);
 
     const [selected, setSelected] = useState<Set<string>>(new Set());

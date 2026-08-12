@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react"; 
 import { Goal } from "../types";
 import { Task } from "../../tasks/types";
-import GoalActions from "./GoalActions";
 import TaskCard from "../../tasks/components/TaskCard";
 import { formatDate } from "@/src/lib/date";
 
@@ -62,7 +61,7 @@ interface Props {
     onEditSelect: () => void;
 }
 
-export default function GoalWithTasks({ goal, tasks, onEditSelect }: Props) {
+export default function GoalWithTasks({ goal, tasks, onEditSelect: _onEditSelect }: Props) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const goalTypeKey = goal.goalType? String(goal.goalType) : "default";
@@ -99,7 +98,6 @@ export default function GoalWithTasks({ goal, tasks, onEditSelect }: Props) {
     </span>
   </div>
   
-  {/* <GoalActions goal={goal} onEditClick={onEditSelect} /> */}
 </div>
 
                 {/* Main Heading Label */}

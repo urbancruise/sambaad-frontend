@@ -1,5 +1,4 @@
 import api from "@/src/lib/axios";
-import { CalendarEvent } from "../types";
 
 export type CalendarType = "GOAL" | "TASK" | "ACTIVITY";
 

@@ -16,7 +16,7 @@ interface Props {
 const GOAL_TYPES = ["LONG_TERM", "ONGOING", "URGENT"];
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 
-export default function CreateEmployeeGoalModal({ open, onClose, onCreated, defaultGoalId }: Props) {
+export default function CreateEmployeeGoalModal({ open, onClose, onCreated, defaultGoalId: _defaultGoalId }: Props) {
     const { employeeId } = useParams<{ employeeId: string }>();
 
     const [title, setTitle] = useState("");

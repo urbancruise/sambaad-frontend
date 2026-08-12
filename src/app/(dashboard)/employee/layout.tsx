@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import Navbar, { WorkspaceItem, NavItem } from "@/src/components/layout/NavBar";
+import Navbar from "@/src/components/layout/NavBar";
 import Sidebar, { SidebarItemData } from "@/src/components/layout/Sidebar";
 import { LayoutDashboard,Layers,CheckSquare, MessageSquare,Mail, Users, Settings, Star, Calendar as CalendarIcon } from "lucide-react";
 
@@ -58,7 +58,6 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex flex-col min-w-0 h-screen overflow-hidden">
-      {/* Workspace dropdown is completely hidden because workspaceItems is omitted */}
       <Navbar navItems={customTeamLinks} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar items={teamLeadSidebarItems} />

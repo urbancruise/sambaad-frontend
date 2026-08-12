@@ -134,30 +134,6 @@ const {
 
             </div>
 
-            {/* Description */}
-
-            {/* <div>
-
-                <label className="block text-sm font-semibold mb-2">
-
-                    Description
-
-                </label>
-
-                <textarea
-
-                    rows={4}
-
-                    {...register("description")}
-
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3"
-
-                />
-
-            </div> */}
-
-            {/* Priority */}
-
             <div>
 
                 <label className="block text-sm text-black font-semibold mb-2">

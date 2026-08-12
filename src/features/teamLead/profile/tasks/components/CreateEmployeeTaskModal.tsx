@@ -17,7 +17,7 @@ interface Props {
 
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 
-export default function CreateEmployeeTaskModal({ open, onClose, onCreated, defaultGoalId, defaultTaskId }: Props) {
+export default function CreateEmployeeTaskModal({ open, onClose, onCreated, defaultGoalId, defaultTaskId: _defaultTaskId }: Props) {
     const { employeeId } = useParams<{ employeeId: string }>();
     const { goals } = useEmployeeGoals();
 

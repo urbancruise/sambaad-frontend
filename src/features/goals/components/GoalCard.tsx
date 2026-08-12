@@ -3,7 +3,6 @@
 import { Goal } from "../types";
 
 import GoalHeader from "./GoalHeader";
-import GoalActions from "./GoalActions";
 
 interface Props {
     goal: Goal;

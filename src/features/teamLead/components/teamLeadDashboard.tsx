@@ -46,7 +46,7 @@ const TeamLeadDashboard = () => {
 
           {/* Bottom Left Grid: Attention & Deadlines side-by-side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AttentionCard data={dashboard.needsAttention} />
+            <AttentionCard />
             <DeadlineCard deadlines={dashboard.deadlines} />
           </div>
         </div>

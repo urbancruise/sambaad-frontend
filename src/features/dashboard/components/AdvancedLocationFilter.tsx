@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Globe, MapPin, Lock, Unlock, ChevronDown, Check, RotateCcw, Sliders, Building2 } from 'lucide-react';
+import { Globe, MapPin, ChevronDown, Check, RotateCcw, Sliders, Building2 } from 'lucide-react';
 
 interface LocationStructure {
   [region: string]: {

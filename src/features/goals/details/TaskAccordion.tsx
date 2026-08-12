@@ -5,7 +5,6 @@ import { useState } from "react";
 import {
     ChevronDown,
     ChevronRight,
-    Plus,
     Calendar,
     Flag,
 } from "lucide-react";
@@ -26,7 +25,7 @@ interface Props {
 
 export default function TaskAccordion({
 
-    goalId,
+    goalId: _goalId,
 
     tasks,
 

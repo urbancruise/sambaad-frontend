@@ -62,20 +62,6 @@ export default function GoalsPage() {
 
     return (
         <div className="min-h-screen bg-[#f3f4f6] p-4 text-slate-800 rounded-2xl">
-            {/* Action Top Header */}
-            {/* <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-700 tracking-wide">DESKBOARD</h1>
-                </div>
-                <button
-                    onClick={() => setOpenCreate(true)}
-                    className="px-5 py-2.5 bg-slate-800 text-white font-bold uppercase text-xs tracking-widest rounded-xl shadow-md hover:bg-slate-700 transition-all active:scale-95"
-                >
-                    Initialize Goal +
-                </button>
-            </div> */}
-
-            {/* Visual Filters / Category Capsules (Matching Image Layout) */}
             <div className="grid grid-cols-4 gap-3 mb-3">
                 <button
                     onClick={() => setActiveFilter("all")}

@@ -12,9 +12,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export default function ThemeProvider({ children }: { children: ReactNode }) {
-    // Start as light on the server and during first client render to
-    // avoid a hydration mismatch — the real preference (localStorage or
-    // system) is applied in the effect below, right after mount.
+
     const [theme, setTheme] = useState<Theme>("light");
     const [mounted, setMounted] = useState(false);
 
@@ -39,9 +37,7 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
 
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
-            {/* Avoids a flash of the wrong theme before the effect above
-                runs — children render invisibly for one frame, not with
-                the wrong colors. */}
+        
             <div style={{ visibility: mounted ? "visible" : "hidden" }}>{children}</div>
         </ThemeContext.Provider>
     );

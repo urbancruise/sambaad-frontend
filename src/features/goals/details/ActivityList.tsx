@@ -6,7 +6,6 @@ import { Plus } from "lucide-react";
 import { getActivities } from "@/src/features/activities/api/activity.service";
 import { Activity } from "@/src/features/activities/types";
 
-import ActivityCard from "@/src/features/activities/components/ActivityCard";
 import CreateActivityModal from "@/src/features/activities/components/CreateActivityModal";
 
 interface Props {
@@ -103,21 +102,6 @@ export default function ActivityList({
 
             )}
 
-            <div className="space-y-4">
-
-                {/* {activities.map((activity) => (
-
-                    <ActivityCard
-
-                        key={activity.id}
-
-                        activity={activity}
-
-                    />
-
-                ))} */}
-
-            </div>
 
             <CreateActivityModal
 

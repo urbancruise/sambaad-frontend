@@ -8,10 +8,6 @@ import {
   Menu, 
   X, 
   LogOut, 
-  Target, 
-  CheckSquare, 
-  Activity as ActivityIcon, 
-  TrendingUp, 
   Layers 
 } from 'lucide-react';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';

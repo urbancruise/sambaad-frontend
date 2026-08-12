@@ -1,14 +1,11 @@
-import React from 'react';
 import { Plus } from 'lucide-react';
 import { TeamTask } from '../types';
-// import TaskCard from './cards/TaskCard';
 
 interface TaskTreeListProps {
   tasks: TeamTask[];
-  onToggleActivity: (taskId: number, activityId: number) => void;
 }
 
-export default function TaskTreeList({ tasks, onToggleActivity }: TaskTreeListProps) {
+export default function TaskTreeList({ tasks }: TaskTreeListProps) {
   return (
     <section className="w-full lg:w-2/2 space-y-6">
       <div className="flex items-center justify-between">

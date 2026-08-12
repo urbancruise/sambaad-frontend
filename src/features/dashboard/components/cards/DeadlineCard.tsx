@@ -2,7 +2,6 @@
 
 import {
     CalendarClock,
-    AlertTriangle,
     Clock3,
 } from "lucide-react";
 
