@@ -26,7 +26,6 @@ const roleLabels: Record<UserRole, string> = {
 };
 
 export default function UserCard({ user }: Props) {
-    // Generate initials or fallback avatar if user image isn't available
     const initials = user.fullName
         .split(" ")
         .map((n) => n[0])
