@@ -17,7 +17,7 @@ export default function CalendarEventBadge({
 
     const Badge = (
         <div
-            className="cursor-pointer rounded-md px-1 text-[12px] font-xs text-black transition hover:scale-[1.03]"
+            className="cursor-pointer rounded-md px-1 text-[12px] font-xs text-black transition hover:scale-[1.03] dark:text-slate-950"
             style={{
                 background: event.color,
             }}

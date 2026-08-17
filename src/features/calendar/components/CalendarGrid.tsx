@@ -4,19 +4,13 @@ import { CalendarEvent } from "../types";
 import CalendarDay from "./CalendarDay";
 
 interface Props {
-
     month: Date;
-
     events: CalendarEvent[];
-
 }
 
 export default function CalendarGrid({
-
     month,
-
     events,
-
 }: Props) {
     const firstDay =
         new Date(
@@ -36,7 +30,6 @@ export default function CalendarGrid({
     const days = [];
 
     for (let i = 0; i < 42; i++) {
-
         const day =
             new Date(start);
 
@@ -45,90 +38,60 @@ export default function CalendarGrid({
         );
 
         days.push(day);
-
     }
-  const PRIORITY_ORDER = {
-  CRITICAL: 4,
-  HIGH: 3,
-  MEDIUM: 2,
-  LOW: 1,
-};
 
-const sortedEvents = [...events].sort(
-  (a, b) =>
-    (PRIORITY_ORDER[b.priority as keyof typeof PRIORITY_ORDER] ?? 0) -
-    (PRIORITY_ORDER[a.priority as keyof typeof PRIORITY_ORDER] ?? 0)
-);
+    const PRIORITY_ORDER = {
+        CRITICAL: 4,
+        HIGH: 3,
+        MEDIUM: 2,
+        LOW: 1,
+    };
 
-    return (
-
-        <>
-
-            <div className="grid grid-cols-7 border">
-
-                {
-
-                    [
-
-                        "Sun",
-
-                        "Mon",
-
-                        "Tue",
-
-                        "Wed",
-
-                        "Thu",
-
-                        "Fri",
-
-                        "Sat",
-
-                    ].map(day => (
-
-                        <div
-
-                            key={day}
-
-                            className="border bg-slate-100 py-3 text-center text-sm font-bold"
-
-                        >
-
-                            {day}
-
-                        </div>
-
-                    ))
-
-                }
-
-            </div>
-
-            <div className="grid grid-cols-7 overflow-visible">
-
-                {
-
-                    days.map(day => (
-
-                        <CalendarDay
-    key={day.toISOString()}
-    date={day}
-    currentMonth={month.getMonth()}
-    events={sortedEvents.filter(
-        (e) =>
-            new Date(e.startDate).toDateString() ===
-            day.toDateString()
-    )}
-/>
-
-                    ))
-
-                }
-
-            </div>
-
-        </>
-
+    const sortedEvents = [...events].sort(
+        (a, b) =>
+            (PRIORITY_ORDER[b.priority as keyof typeof PRIORITY_ORDER] ?? 0) -
+            (PRIORITY_ORDER[a.priority as keyof typeof PRIORITY_ORDER] ?? 0)
     );
 
+    return (
+        <>
+            <div className="grid grid-cols-7 border border-slate-200 dark:border-slate-800">
+                {
+                    [
+                        "Sun",
+                        "Mon",
+                        "Tue",
+                        "Wed",
+                        "Thu",
+                        "Fri",
+                        "Sat",
+                    ].map(day => (
+                        <div
+                            key={day}
+                            className="border border-slate-200 bg-slate-100 py-3 text-center text-sm font-bold text-slate-700 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300"
+                        >
+                            {day}
+                        </div>
+                    ))
+                }
+            </div>
+
+            <div className="grid grid-cols-7 overflow-visible border-l border-t border-slate-200 dark:border-slate-800">
+                {
+                    days.map(day => (
+                        <CalendarDay
+                            key={day.toISOString()}
+                            date={day}
+                            currentMonth={month.getMonth()}
+                            events={sortedEvents.filter(
+                                (e) =>
+                                    new Date(e.startDate).toDateString() ===
+                                    day.toDateString()
+                            )}
+                        />
+                    ))
+                }
+            </div>
+        </>
+    );
 }

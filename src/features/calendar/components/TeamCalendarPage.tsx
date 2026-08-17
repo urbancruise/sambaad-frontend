@@ -32,27 +32,29 @@ export default function TeamCalendarPage({
     const selectedUserId = selected === SELF_VALUE ? undefined : selected;
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-6 bg-white text-slate-800 min-h-screen dark:bg-slate-950 dark:text-slate-100">
             <div>
-                <h1 className="text-2xl font-bold text-slate-800">Calendar</h1>
-                <p className="text-sm text-slate-500 mt-1">
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Calendar</h1>
+                <p className="text-sm text-slate-500 mt-1 dark:text-slate-400">
                     View your own schedule, or pick a team member to see theirs.
                 </p>
             </div>
 
             <div className="relative max-w-xs">
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                 <select
                     value={selected}
                     onChange={(e) => setSelected(e.target.value)}
                     disabled={loading}
-                    className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-sm font-medium focus:border-emerald-500 focus:outline-none disabled:opacity-60"
+                    className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-sm font-medium text-slate-800 focus:border-emerald-500 focus:outline-none disabled:opacity-60 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-500"
                 >
-                    <option value={SELF_VALUE}>{selfLabel}</option>
+                    <option value={SELF_VALUE} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+                        {selfLabel}
+                    </option>
                     {people.length > 0 && (
-                        <optgroup label={groupLabel}>
+                        <optgroup label={groupLabel} className="bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
                             {people.map((p) => (
-                                <option key={p.id} value={p.id}>
+                                <option key={p.id} value={p.id} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
                                     {p.fullName}
                                 </option>
                             ))}
