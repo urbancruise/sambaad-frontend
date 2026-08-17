@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { useRouter, usePathname } from "next/navigation";
 
 import {
     getNotifications,
@@ -25,6 +26,8 @@ export default function NotificationDropdown({
 }) {
 
     const dispatch = useDispatch();
+    const router = useRouter();
+    const pathname = usePathname();
 
     const {
         notifications,
@@ -47,18 +50,19 @@ export default function NotificationDropdown({
 
     }, [load]);
 
-    const read = async (
-        id: string
-    ) => {
+    const handleClick = async (item: Notification) => {
+        await markNotificationRead(item.id);
+        dispatch(markRead(item.id));
 
-        await markNotificationRead(id);
-
-        dispatch(
-            markRead(id)
-        );
+        // link is stored role-agnostic (e.g. "/email/thread/abc123") —
+        // prefix with whichever role section the user is currently in,
+        // same pattern used for Calendar/Task links elsewhere in the app.
+        if (item.link) {
+            const basePath = `/${pathname?.split("/")[1] || "employee"}`;
+            router.push(`${basePath}${item.link}`);
+        }
 
         close();
-
     };
 
     const readAll = async () => {
@@ -71,11 +75,11 @@ export default function NotificationDropdown({
 
     return (
 
-        <div className="absolute right-0 mt-3 w-96 bg-white rounded-2xl border shadow-xl z-50">
+        <div className="absolute right-0 mt-3 w-96 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl z-50">
 
-            <div className="flex justify-between items-center p-4 border-b">
+            <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800">
 
-                <h2 className="font-bold">
+                <h2 className="font-bold text-slate-800 dark:text-white">
 
                     Notifications
 
@@ -83,7 +87,7 @@ export default function NotificationDropdown({
 
                 <button
                     onClick={readAll}
-                    className="text-emerald-600 text-sm"
+                    className="text-emerald-600 dark:text-emerald-400 text-sm"
                 >
 
                     Mark all
@@ -96,7 +100,7 @@ export default function NotificationDropdown({
 
                 {notifications.length === 0 && (
 
-                    <div className="p-8 text-center text-slate-500">
+                    <div className="p-8 text-center text-slate-500 dark:text-slate-400">
 
                         No notifications
 
@@ -108,23 +112,21 @@ export default function NotificationDropdown({
 
                     <div
                         key={item.id}
-                        onClick={() =>
-                            read(item.id)
-                        }
-                        className={`p-4 border-b cursor-pointer hover:bg-slate-50 ${
+                        onClick={() => handleClick(item)}
+                        className={`p-4 border-b border-slate-100 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition ${
                             !item.isRead
-                                ? "bg-blue-50"
+                                ? "bg-blue-50 dark:bg-blue-500/10"
                                 : ""
                         }`}
                     >
 
-                        <h3 className="font-semibold">
+                        <h3 className="font-semibold text-slate-800 dark:text-white">
 
                             {item.title}
 
                         </h3>
 
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
 
                             {item.message}
 

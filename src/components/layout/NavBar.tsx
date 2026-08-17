@@ -79,13 +79,13 @@ export default function Navbar({
         <div className="flex items-center justify-between h-16 gap-4">
 
           {/* 1. Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-18 p-[1px] pb-2 transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
-              <div className="w-full h-full rounded-[6px] flex items-center justify-center overflow-hidden">
+          <Link href="#" className="flex items-center gap-2.5 group shrink-0">
+            <div className="w-18 p-px pb-2 transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
+              <div className="w-full h-full rounded-md flex items-center justify-center overflow-hidden">
                 <img className="w-18 object-contain" src="/assets/SITE-ICON.png" alt="SAMVAAD" />
               </div>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col"> 
               <span className="font-bold text-white text-base tracking-wide leading-none group-hover:text-[#F7C431] transition-colors">
                 SAMVAAD
               </span>

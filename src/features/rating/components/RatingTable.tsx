@@ -31,21 +31,21 @@ const emptyRow: RatingRow = {
 };
 
 const totalBadge = (total: number) => {
-    if (total >= 13) return "bg-emerald-600 text-white";
-    if (total >= 10) return "bg-amber-500 text-white";
-    return "bg-rose-600 text-white";
+    if (total >= 13) return "bg-emerald-600 text-white dark:bg-emerald-500";
+    if (total >= 10) return "bg-amber-500 text-white dark:bg-amber-600";
+    return "bg-rose-600 text-white dark:bg-rose-700";
 };
 
 export default function RatingTable({ employees, teamAverage, currentUserId, loading, onFieldChange }: Props) {
     if (loading) {
-        return <div className="rounded-xl border bg-white p-10 text-center text-slate-400">Loading ratings...</div>;
+        return <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500">Loading ratings...</div>;
     }
 
     if (!employees.length) {
         return (
-            <div className="rounded-xl border border-dashed bg-white p-12 text-center">
-                <h3 className="text-lg font-semibold text-slate-700">No one to rate here</h3>
-                <p className="mt-2 text-sm text-slate-500">No team members found for this filter.</p>
+            <div className="rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">No one to rate here</h3>
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">No team members found for this filter.</p>
             </div>
         );
     }
@@ -69,13 +69,13 @@ export default function RatingTable({ employees, teamAverage, currentUserId, loa
             patch({ extraFields: { ...r.extraFields, [key]: value } });
 
         return (
-            <tr key={`${emp.id}-${rowType}`} className={`border-b border-slate-100 ${isFirstRow ? "border-t-2 border-t-slate-200" : ""}`}>
+            <tr key={`${emp.id}-${rowType}`} className={`border-b border-slate-100 dark:border-slate-800 ${isFirstRow ? "border-t-2 border-t-slate-200 dark:border-t-slate-700" : ""}`}>
                 {isFirstRow && (
-                    <td rowSpan={2} className="px-3 py-2 align-top font-bold text-slate-800 whitespace-nowrap">
+                    <td rowSpan={2} className="px-3 py-2 align-top font-bold text-slate-800 whitespace-nowrap dark:text-slate-100">
                         {emp.fullName}
                     </td>
                 )}
-                <td className="px-3 py-2 text-xs font-semibold text-slate-500">{roleLabel}</td>
+                <td className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400">{roleLabel}</td>
 
                 {fields.sales.map((f) =>
                     f.isNumeric ? (
@@ -145,19 +145,19 @@ export default function RatingTable({ employees, teamAverage, currentUserId, loa
     };
 
     return (
-        <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <table className="min-w-full text-sm border-collapse">
                 <thead>
-                    <tr className="bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                    <tr className="bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:bg-slate-800/80 dark:text-slate-400">
                         <th className="px-3 py-2 text-left">Name</th>
                         <th className="px-3 py-2 text-left">Role</th>
-                        <th colSpan={fields.sales.length + 1} className="px-3 py-2 text-center text-rose-600">Performance</th>
-                        <th colSpan={fields.conduct.length + 1} className="px-3 py-2 text-center text-blue-600">Conduct & Behaviour</th>
-                        <th colSpan={fields.contribution.length + 1} className="px-3 py-2 text-center text-slate-700">Contribution to Org.</th>
-                        <th className="px-3 py-2 text-center bg-slate-800 text-white">Rating (/15)</th>
-                        <th className="px-3 py-2 text-center bg-slate-800 text-white">Band</th>
+                        <th colSpan={fields.sales.length + 1} className="px-3 py-2 text-center text-rose-600 dark:text-rose-400">Performance</th>
+                        <th colSpan={fields.conduct.length + 1} className="px-3 py-2 text-center text-blue-600 dark:text-blue-400">Conduct & Behaviour</th>
+                        <th colSpan={fields.contribution.length + 1} className="px-3 py-2 text-center text-slate-700 dark:text-slate-300">Contribution to Org.</th>
+                        <th className="px-3 py-2 text-center bg-slate-800 text-white dark:bg-slate-700 dark:text-slate-100">Rating (/15)</th>
+                        <th className="px-3 py-2 text-center bg-slate-800 text-white dark:bg-slate-700 dark:text-slate-100">Band</th>
                     </tr>
-                    <tr className="bg-slate-50/60 text-[10px] font-semibold text-slate-400">
+                    <tr className="bg-slate-50/60 text-[10px] font-semibold text-slate-400 dark:bg-slate-800/40 dark:text-slate-500">
                         <th></th>
                         <th></th>
                         {fields.sales.map((f) => <th key={f.key} className="px-3 py-1 text-left font-semibold">{f.label}</th>)}
@@ -180,7 +180,7 @@ export default function RatingTable({ employees, teamAverage, currentUserId, loa
                     ))}
                 </tbody>
                 <tfoot>
-                    <tr className="bg-slate-900 text-white">
+                    <tr className="bg-slate-900 text-white dark:bg-slate-950 dark:border-t dark:border-slate-800">
                         <td colSpan={fields.sales.length + fields.conduct.length + fields.contribution.length + 5} className="px-3 py-3 text-center font-bold">
                             Team Average
                         </td>

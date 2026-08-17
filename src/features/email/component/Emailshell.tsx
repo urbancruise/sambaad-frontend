@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation";
 
 import EmailSidebar from "./EmailSidebar";
 import ComposeModal from "./Composemodal";
-import NewEmailToast from "./Newemailtoast";
 import { useEmailUnread } from "../hooks/useEmailUnread";
 import { getLabels } from "../api/email.service";
 import { Label } from "../types";
@@ -15,7 +14,9 @@ export default function EmailShell({ children }: { children: React.ReactNode }) 
     const pathname = usePathname();
     const basePath = `/${pathname?.split("/")[1] || "employee"}/email`;
 
-    const { unreadCount, latestEmail, clearLatestEmail } = useEmailUnread();
+    // Live socket connection + toast now live in GlobalEmailListener,
+    // mounted once at the root layout — this just reads the count.
+    const { unreadCount } = useEmailUnread();
     const [labels, setLabels] = useState<Label[]>([]);
     const [composeOpen, setComposeOpen] = useState(false);
 
@@ -24,9 +25,6 @@ export default function EmailShell({ children }: { children: React.ReactNode }) 
     }, []);
 
     const handleSent = () => {
-        // A crude but reliable refresh — folder/thread views re-fetch on
-        // their own mount, so bouncing back to Inbox after sending
-        // guarantees the new state (Sent folder, thread update) is seen.
         router.push(`${basePath}/inbox`);
     };
 
@@ -37,8 +35,6 @@ export default function EmailShell({ children }: { children: React.ReactNode }) 
             <div className="flex-1 flex min-w-0">{children}</div>
 
             <ComposeModal open={composeOpen} onClose={() => setComposeOpen(false)} onSent={handleSent} />
-
-            <NewEmailToast email={latestEmail} onClose={clearLatestEmail} />
         </div>
     );
 }

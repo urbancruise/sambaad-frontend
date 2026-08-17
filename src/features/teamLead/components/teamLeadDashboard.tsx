@@ -14,9 +14,9 @@ const TeamLeadDashboard = () => {
 
   if (loading || !dashboard) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4 bg-slate-100 text-slate-600 rounded-2xl">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4 bg-slate-100 text-slate-600 rounded-2xl dark:bg-slate-900 dark:text-slate-400">
         <div className="relative flex items-center justify-center">
-          <div className="w-12 h-12 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin dark:border-slate-700 dark:border-t-blue-500" />
         </div>
         <p className="text-sm font-semibold tracking-wide animate-pulse">
           Loading dashboard...
@@ -26,10 +26,10 @@ const TeamLeadDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 p-4 sm:p-6 lg:p-8 space-y-6 font-sans">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 p-4 sm:p-6 lg:p-8 space-y-6 font-sans dark:bg-slate-950 dark:text-slate-100">
       {/* Top Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight dark:text-slate-100">
           Team Dashboard
         </h1>
       </div>

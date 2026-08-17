@@ -53,7 +53,7 @@ export default function GoalsPage() {
         return (
             <div className="flex h-64 items-center justify-center">
                 <div className="relative h-12 w-12">
-                    <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-800"></div>
                     <div className="absolute inset-0 rounded-full border-4 border-t-cyan-500 animate-spin"></div>
                 </div>
             </div>
@@ -61,14 +61,14 @@ export default function GoalsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f3f4f6] p-4 text-slate-800 rounded-2xl">
+        <div className="min-h-screen bg-[#f3f4f6] p-4 text-slate-800 rounded-2xl dark:bg-slate-950 dark:text-slate-100">
             <div className="grid grid-cols-4 gap-3 mb-3">
                 <button
                     onClick={() => setActiveFilter("all")}
                     className={`py-1 h-10 rounded-2xl font-bold text-center tracking-wide text-lg transition-all shadow-sm ${
                         activeFilter === "all"
-                            ? "bg-slate-700 text-white shadow-md scale-102"
-                            : "bg-white text-slate-600 hover:bg-slate-50"
+                            ? "bg-slate-700 text-white shadow-md scale-102 dark:bg-slate-800 dark:border dark:border-slate-700"
+                            : "bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border dark:border-slate-800 dark:hover:bg-slate-800/80"
                     }`}
                 >
                     All Goals
@@ -77,8 +77,8 @@ export default function GoalsPage() {
                     onClick={() => setActiveFilter("LONG_TERM")}
                     className={`py-1 h-10 rounded-2xl font-bold text-center tracking-wide text-lg transition-all shadow-sm ${
                         activeFilter === "LONG_TERM"
-                            ? "bg-[#3bc4d9] text-slate-900 shadow-md scale-102"
-                            : "bg-white text-slate-600 hover:bg-slate-50"
+                            ? "bg-[#3bc4d9] text-slate-900 shadow-md scale-102 dark:bg-cyan-600 dark:text-white"
+                            : "bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border dark:border-slate-800 dark:hover:bg-slate-800/80"
                     }`}
                 >
                     longTerm
@@ -87,8 +87,8 @@ export default function GoalsPage() {
                     onClick={() => setActiveFilter("onGoing")}
                     className={`py-1 h-10 rounded-2xl font-bold text-center tracking-wide text-lg transition-all shadow-sm ${
                         activeFilter === "onGoing"
-                            ? "bg-[#fcc419] text-slate-900 shadow-md scale-102"
-                            : "bg-white text-slate-600 hover:bg-slate-50"
+                            ? "bg-[#fcc419] text-slate-900 shadow-md scale-102 dark:bg-amber-500 dark:text-slate-950"
+                            : "bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border dark:border-slate-800 dark:hover:bg-slate-800/80"
                     }`}
                 >
                     onGoing
@@ -97,8 +97,8 @@ export default function GoalsPage() {
                     onClick={() => setActiveFilter("urgent")}
                     className={`py-1 h-10 rounded-2xl font-bold text-center tracking-wide text-lg transition-all shadow-sm ${
                         activeFilter === "urgent"
-                            ? "bg-[#e64980] text-white shadow-md scale-102"
-                            : "bg-white text-slate-600 hover:bg-slate-50"
+                            ? "bg-[#e64980] text-white shadow-md scale-102 dark:bg-rose-600"
+                            : "bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border dark:border-slate-800 dark:hover:bg-slate-800/80"
                     }`}
                 >
                     urgent
@@ -133,8 +133,8 @@ export default function GoalsPage() {
             </div>
 
             {filteredGoals.length === 0 && (
-                <div className="text-center py-16 border-2 border-dashed border-slate-300 rounded-2xl bg-white shadow-inner">
-                    <p className="text-slate-400 font-medium text-sm">No operational parameters detected under this category.</p>
+                <div className="text-center py-16 border-2 border-dashed border-slate-300 rounded-2xl bg-white shadow-inner dark:bg-slate-900/40 dark:border-slate-800">
+                    <p className="text-slate-400 font-medium text-sm dark:text-slate-500">No operational parameters detected under this category.</p>
                 </div>
             )}
         </div>

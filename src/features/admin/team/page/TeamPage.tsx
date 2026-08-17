@@ -48,7 +48,7 @@ export default function AdminTeamPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search by name..."
-                        className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                        className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2 text-sm focus:border-slate-400 focus:outline-none dark:bg-slate-900"
                     />
                 </div>
 

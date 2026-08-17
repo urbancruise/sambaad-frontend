@@ -6,12 +6,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/src/lib/store";
 import { getUnreadCount } from "../api/email.service";
 import { setUnreadCount } from "../store/Emailslice";
-import { useEmailSocket } from "./useEmailSocket";
 
+/**
+ * Just the initial fetch + a Redux read now — the live socket
+ * connection lives ONLY in GlobalEmailListener (mounted once at the
+ * root layout). This used to also call useEmailSocket() itself,
+ * meaning every visit to /email opened a second, redundant socket
+ * connection on top of the global one.
+ */
 export const useEmailUnread = () => {
     const dispatch = useDispatch<AppDispatch>();
     const unreadCount = useSelector((state: RootState) => state.email.unreadCount);
-    const { latestEmail, clearLatestEmail } = useEmailSocket();
 
     useEffect(() => {
         getUnreadCount()
@@ -19,5 +24,5 @@ export const useEmailUnread = () => {
             .catch(() => {});
     }, [dispatch]);
 
-    return { unreadCount, latestEmail, clearLatestEmail };
+    return { unreadCount };
 };

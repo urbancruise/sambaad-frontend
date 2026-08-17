@@ -29,12 +29,14 @@ export default function RatingFilters({
     const currentYear = new Date().getFullYear();
     const years = [currentYear - 1, currentYear, currentYear + 1];
 
+    const selectClasses = "rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-emerald-400";
+
     return (
         <div className="flex flex-wrap gap-3">
             <select
                 value={departmentId}
                 onChange={(e) => onDepartmentChange(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:outline-none"
+                className={selectClasses}
             >
                 <option value="">All Departments</option>
                 {departments.map((d) => (
@@ -45,7 +47,7 @@ export default function RatingFilters({
             <select
                 value={month}
                 onChange={(e) => onMonthChange(Number(e.target.value))}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:outline-none"
+                className={selectClasses}
             >
                 {MONTHS.map((m, i) => (
                     <option key={m} value={i + 1}>{m}</option>
@@ -55,7 +57,7 @@ export default function RatingFilters({
             <select
                 value={year}
                 onChange={(e) => onYearChange(Number(e.target.value))}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold focus:border-emerald-500 focus:outline-none"
+                className={selectClasses}
             >
                 {years.map((y) => (
                     <option key={y} value={y}>{y}</option>

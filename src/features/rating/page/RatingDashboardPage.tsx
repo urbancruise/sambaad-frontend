@@ -22,11 +22,6 @@ export default function RatingDashboardPage() {
 
     const totalRated = team?.bandSummary.reduce((sum, b) => sum + b.count, 0) ?? 0;
 
-    // Group by department so each table renders with THAT department's
-    // own field labels — a mixed, ungrouped list was previously always
-    // rendered using only the first employee's fields, which showed
-    // e.g. "Sales Improvement Ideas" for every department regardless
-    // of whether it actually applied to them.
     const groups = useMemo(() => {
         if (!team) return [];
 
@@ -52,28 +47,33 @@ export default function RatingDashboardPage() {
                 </p>
             </div>
 
-            <RatingFilters
-                departments={departments}
-                departmentId={departmentId}
-                onDepartmentChange={setDepartmentId}
-                month={month}
-                year={year}
-                onMonthChange={setMonth}
-                onYearChange={setYear}
-            />
+            {/* Row container for Filters and Team Average Card */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="w-full lg:w-auto">
+                    <RatingFilters
+                        departments={departments}
+                        departmentId={departmentId}
+                        onDepartmentChange={setDepartmentId}
+                        month={month}
+                        year={year}
+                        onMonthChange={setMonth}
+                        onYearChange={setYear}
+                    />
+                </div>
+
+                {team && (
+                    <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 px-3 py-2 text-white flex items-center justify-between lg:w-[300px] shrink-0 shadow-sm">
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Team Average</p>
+                            <p className="text-3xl font-black mt-0.5">{team.teamAverage} <span className="text-base font-medium opacity-70">/ 15</span></p>
+                        </div>
+                        <p className="text-xs opacity-80">{totalRated} rated this period</p>
+                    </div>
+                )}
+            </div>
 
             {team && (
-                <>
-                    <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 p-6 text-white flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-semibold uppercase tracking-wide opacity-80">Team Average</p>
-                            <p className="text-4xl font-black mt-1">{team.teamAverage} <span className="text-lg font-medium opacity-70">/ 15</span></p>
-                        </div>
-                        <p className="text-sm opacity-80">{totalRated} rated this period</p>
-                    </div>
-
-                    <BandSummaryCards bandSummary={team.bandSummary} totalRated={totalRated} />
-                </>
+                <BandSummaryCards bandSummary={team.bandSummary} totalRated={totalRated} />
             )}
 
             {loading && (
