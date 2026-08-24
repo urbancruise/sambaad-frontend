@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     Inbox, Send, FileText, Clock, AlertOctagon, Trash2, Archive,
-    Pencil, Tag,
+    Pencil, Tag, Settings,
 } from "lucide-react";
 
 import { EmailFolder, FOLDER_LABELS, Label } from "../types";
@@ -32,7 +32,7 @@ export default function EmailSidebar({ unreadCount, labels, onCompose }: Props) 
     const basePath = `/${pathname?.split("/")[1] || "employee"}/email`;
 
     return (
-        <div className="w-60 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-6 overflow-y-auto">
+        <div className="w-60 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-6 overflow-y-auto flex flex-col">
             <button
                 onClick={onCompose}
                 className="w-full flex items-center gap-2 justify-center rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 shadow-sm transition active:scale-95"
@@ -109,6 +109,20 @@ export default function EmailSidebar({ unreadCount, labels, onCompose }: Props) 
                     </div>
                 </div>
             )}
+
+            <div className="flex-1" />
+
+            <Link
+                href={`${basePath}/settings`}
+                className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                    pathname === `${basePath}/settings`
+                        ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                }`}
+            >
+                <Settings size={16} />
+                Settings
+            </Link>
         </div>
     );
 }

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { X, Minus, Send, Clock, ChevronDown } from "lucide-react";
 
 import { EmailUser } from "../types";
-import { createDraft, autosaveDraft, sendEmail, attachFile } from "../api/email.service";
+import { createDraft, autosaveDraft, sendEmail, attachFile, getSignature } from "../api/email.service";
 import RichTextEditor from "./Richtexteditor";
 import RecipientPicker from "./Recipientpicker";
 import AttachmentDropzone, { PendingAttachment } from "./Attachmentdropzone";
@@ -42,6 +42,7 @@ export default function ComposeModal({ open, onClose, onSent, initial }: Props) 
 
     const emailIdRef = useRef<string | null>(null);
     const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const signatureAppliedRef = useRef(false);
 
     // Create the draft shell as soon as compose opens — attachments and
     // autosave both need a real emailId to attach to.
@@ -52,6 +53,27 @@ export default function ComposeModal({ open, onClose, onSent, initial }: Props) 
             if (!cancelled) emailIdRef.current = draft.id;
         });
         return () => { cancelled = true; };
+    }, [open]);
+
+    // Auto-append the user's signature (if enabled) once per open —
+    // goes ABOVE any quoted original content for replies/forwards,
+    // same placement convention as Gmail/Outlook.
+    useEffect(() => {
+        if (!open || signatureAppliedRef.current) return;
+        signatureAppliedRef.current = true;
+
+        getSignature()
+            .then((sig) => {
+                if (sig?.isAutoAppend && sig.content) {
+                    const sigBlock = `<br/><br/>${sig.content}`;
+                    setBodyHtml((prev) => `${sigBlock}${prev || ""}`);
+                }
+            })
+            .catch(() => {});
+    }, [open]);
+
+    useEffect(() => {
+        if (!open) signatureAppliedRef.current = false;
     }, [open]);
 
     const scheduleAutosave = () => {
