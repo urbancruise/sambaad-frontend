@@ -18,15 +18,18 @@ export const useTeamRating = (departmentId: string, month: number, year: number)
 
     const period = `${year}-${String(month).padStart(2, "0")}`;
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        try {
-            const data = await getTeamRating({ department: departmentId || undefined, period });
-            setTeam(data);
-        } finally {
-            setLoading(false);
-        }
-    }, [departmentId, period]);
+    const load = useCallback(
+        async (opts?: { silent?: boolean }) => {
+            if (!opts?.silent) setLoading(true);
+            try {
+                const data = await getTeamRating({ department: departmentId || undefined, period });
+                setTeam(data);
+            } finally {
+                if (!opts?.silent) setLoading(false);
+            }
+        },
+        [departmentId, period]
+    );
 
     useEffect(() => {
         getDepartments().then(setDepartments).catch(() => setDepartments([]));
@@ -42,32 +45,33 @@ export const useTeamRating = (departmentId: string, month: number, year: number)
             rowType: "self" | "senior",
             patch: Record<string, any>
         ) => {
-            if (!team) return;
-
-            const emp = team.employees.find((e) => e.id === employeeId);
-            const currentRow = emp?.[rowType] ?? {
-                salesScore: null,
-                conductScore: null,
-                contributionScore: null,
-                achievementPercent: null,
-                extraFields: {},
-                total: 0,
-                updatedAt: "",
-                raterId: 0,
-            };
-
-            const fullPayload = {
-                period,
-                salesScore: currentRow.salesScore,
-                conductScore: currentRow.conductScore,
-                contributionScore: currentRow.contributionScore,
-                achievementPercent: currentRow.achievementPercent,
-                extraFields: currentRow.extraFields,
-                ...patch,
-            };
+            let fullPayload: any;
 
             setTeam((prev) => {
                 if (!prev) return prev;
+
+                const emp = prev.employees.find((e) => e.id === employeeId);
+                const currentRow = emp?.[rowType] ?? {
+                    salesScore: null,
+                    conductScore: null,
+                    contributionScore: null,
+                    achievementPercent: null,
+                    extraFields: {},
+                    total: 0,
+                    updatedAt: "",
+                    raterId: 0,
+                };
+
+                fullPayload = {
+                    period,
+                    salesScore: currentRow.salesScore,
+                    conductScore: currentRow.conductScore,
+                    contributionScore: currentRow.contributionScore,
+                    achievementPercent: currentRow.achievementPercent,
+                    extraFields: currentRow.extraFields,
+                    ...patch,
+                };
+
                 return {
                     ...prev,
                     employees: prev.employees.map((e) => {
@@ -80,12 +84,12 @@ export const useTeamRating = (departmentId: string, month: number, year: number)
             const submit = rowType === "self" ? submitSelfRating : submitSeniorRating;
 
             try {
-                await submit(employeeId, fullPayload as any);
+                await submit(employeeId, fullPayload);
             } finally {
-                load();
+                load({ silent: true }); // background re-sync (total/band/etc.) — no loading flip, no unmount
             }
         },
-        [team, period, load]
+        [period, load]
     );
 
     return {

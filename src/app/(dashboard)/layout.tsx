@@ -2,6 +2,7 @@
 import React from 'react';
 import { usePathname } from "next/navigation";
 import ProtectedRoute from "@/src/features/auth/components/auth/Protectedroute";
+import ChatSocketProvider from "@/src/features/chat/components/ChatSocketProvider";
 
 const ROUTE_ROLES: Record<string, string[]> = {
   "/admin": ["ADMIN", "SUPER_ADMIN"],
@@ -16,5 +17,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const matchedKey = Object.keys(ROUTE_ROLES).find(prefix => pathname.startsWith(prefix));
   const roles = matchedKey ? ROUTE_ROLES[matchedKey] : [];
 
-  return <ProtectedRoute roles={roles}>{children}</ProtectedRoute>;
+  return (
+    <ProtectedRoute roles={roles}>
+      <ChatSocketProvider>{children}</ChatSocketProvider>
+    </ProtectedRoute>
+  );
 }

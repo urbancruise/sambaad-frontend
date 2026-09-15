@@ -38,7 +38,7 @@ const hodSidebarItems: SidebarItemData[] = [
     label: 'Communication',
     subLabel: 'Chat & Forums',
     icon: MessageSquare,
-    url: `#`,
+    url: `/hod/chats`,
     color: 'blue'
   },
   {
@@ -52,7 +52,10 @@ const hodSidebarItems: SidebarItemData[] = [
     label: 'Email',
     subLabel: 'Outbox & Sync',
     icon: Mail,
-    url: `hod/email`,
+    // NOTE: was missing a leading slash ("hod/email") — fixed while
+    // touching this file. That bug would have made this link
+    // navigate relative to the current path instead of to /hod/email.
+    url: `/hod/email`,
     color: 'yellow'
   },
 ];
@@ -123,8 +126,8 @@ export default function ManagerLayout({
       <div className="flex flex-1 overflow-hidden">
         <Sidebar items={hodSidebarItems} />
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-[100%] mx-auto">
+        <main className="flex-1 overflow-y-auto min-h-0">
+          <div className="max-w-[100%] mx-auto h-full">
             {children}
           </div>
         </main>

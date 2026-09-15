@@ -4,10 +4,14 @@ import StoreProvider from '@/src/components/StoreProvider';
 import ThemeProvider from '@/src/components/theme/ThemeProvider';
 import AuthInitializer from '../features/auth/components/auth/AuthInitializer';
 import GlobalEmailListener from '@/src/features/email/component/GlobalEmailListener';
+import { icons } from 'lucide-react';
 
 export const metadata = {
   title: 'Sambaad Task System',
   description: 'Enterprise Performance-Driven Task Management System',
+  icons:{
+    icon : '/assets/SITE-ICON.png'
+  }
 };
 
 export default function RootLayout({

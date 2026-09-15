@@ -240,7 +240,7 @@ export default function Navbar({
               </div>
               <div className="border-t border-slate-800 my-1" />
             </>
-          )}
+          )}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
 
           {/* Mobile Standard Navigation */}
           <div className="flex flex-col gap-1">

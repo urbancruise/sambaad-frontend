@@ -38,7 +38,7 @@ const managerSidebarItems: SidebarItemData[] = [
     label: 'Communication',
     subLabel: 'Chat & Forums',
     icon: MessageSquare,
-    url: `#`,
+    url: `/manager/chats`,
     color: 'blue'
   },
   {
@@ -128,9 +128,9 @@ export default function ManagerLayout({
 
                 <Sidebar items={managerSidebarItems} />
 
-                <main className="flex-1 overflow-y-auto">
+                <main className="flex-1 overflow-y-auto min-h-0">
 
-                    <div className="max-w-full mx-auto ">
+                    <div className="max-w-full mx-auto h-full">
 
                         {children}
 

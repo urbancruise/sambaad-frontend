@@ -32,7 +32,7 @@ const teamLeadSidebarItems: SidebarItemData[] = [
     label: 'Communication', 
     subLabel: 'Chat & Forums', 
     icon: MessageSquare, 
-    url: `#`,
+    url: `/employee/chats`,
     color: 'blue'
   },
   { 
@@ -61,8 +61,8 @@ export default function DashboardLayout({
       <Navbar navItems={customTeamLinks} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar items={teamLeadSidebarItems} />
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-[95%] mt-3 w-[95%] px-1 mx-auto">
+        <main className="flex-1 overflow-y-auto min-h-0">
+          <div className="max-w-[95%] mt-3 w-[95%] px-1 mx-auto h-full">
             {children}
           </div>
         </main>

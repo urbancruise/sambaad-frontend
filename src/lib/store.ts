@@ -37,6 +37,7 @@ import adminUserGoalsReducer from "@/src/features/admin/profile/goals/store/goal
 import adminUserTasksReducer from "@/src/features/admin/profile/tasks/store/taskSlice";
 import adminUserActivitiesReducer from "@/src/features/admin/profile/activities/store/activitySlice";
 import emailReducer from "@/src/features/email/store/Emailslice"
+import chatReducer from "@/src/features/chat/store/chatSlice";
 
 export const makeStore = () => {
   return configureStore({
@@ -77,7 +78,8 @@ export const makeStore = () => {
       adminUserGoals: adminUserGoalsReducer,
       adminUserTasks: adminUserTasksReducer,
       adminUserActivities: adminUserActivitiesReducer,
-      email: emailReducer
+      email: emailReducer,
+      chat: chatReducer,
     },
   });
 };

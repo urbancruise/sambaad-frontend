@@ -38,7 +38,7 @@ const adminSidebarItems: SidebarItemData[] = [
     label: 'Communication',
     subLabel: 'Chat & Forums',
     icon: MessageSquare,
-    url: `#`,
+    url: `/admin/chats`,
     color: 'blue'
   },
   {
@@ -122,8 +122,8 @@ export default function AdminLayout({
       <div className="flex flex-1 overflow-hidden">
         <Sidebar items={adminSidebarItems} />
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-[100%] mx-auto">
+        <main className="flex-1 overflow-y-auto min-h-0">
+          <div className="max-w-[100%] mx-auto h-full">
             {children}
           </div>
         </main>
