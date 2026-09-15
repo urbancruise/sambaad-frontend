@@ -45,33 +45,32 @@ export const useTeamRating = (departmentId: string, month: number, year: number)
             rowType: "self" | "senior",
             patch: Record<string, any>
         ) => {
-            let fullPayload: any;
+            if (!team) return;
+
+            const emp = team.employees.find((e) => e.id === employeeId);
+            const currentRow = emp?.[rowType] ?? {
+                salesScore: null,
+                conductScore: null,
+                contributionScore: null,
+                achievementPercent: null,
+                extraFields: {},
+                total: 0,
+                updatedAt: "",
+                raterId: 0,
+            };
+
+            const fullPayload = {
+                period,
+                salesScore: currentRow.salesScore,
+                conductScore: currentRow.conductScore,
+                contributionScore: currentRow.contributionScore,
+                achievementPercent: currentRow.achievementPercent,
+                extraFields: currentRow.extraFields,
+                ...patch,
+            };
 
             setTeam((prev) => {
                 if (!prev) return prev;
-
-                const emp = prev.employees.find((e) => e.id === employeeId);
-                const currentRow = emp?.[rowType] ?? {
-                    salesScore: null,
-                    conductScore: null,
-                    contributionScore: null,
-                    achievementPercent: null,
-                    extraFields: {},
-                    total: 0,
-                    updatedAt: "",
-                    raterId: 0,
-                };
-
-                fullPayload = {
-                    period,
-                    salesScore: currentRow.salesScore,
-                    conductScore: currentRow.conductScore,
-                    contributionScore: currentRow.contributionScore,
-                    achievementPercent: currentRow.achievementPercent,
-                    extraFields: currentRow.extraFields,
-                    ...patch,
-                };
-
                 return {
                     ...prev,
                     employees: prev.employees.map((e) => {
@@ -86,10 +85,10 @@ export const useTeamRating = (departmentId: string, month: number, year: number)
             try {
                 await submit(employeeId, fullPayload);
             } finally {
-                load({ silent: true }); // background re-sync (total/band/etc.) — no loading flip, no unmount
+                load({ silent: true }); // background re-sync — no loading flip, no unmount
             }
         },
-        [period, load]
+        [team, period, load]
     );
 
     return {
