@@ -43,7 +43,7 @@ export default function ScoreCard({
 
         <div className="space-y-6">
 
-            <div className="bg-gradient-to-r from-emerald-600 to-green-500 rounded-2xl p-8 text-white">
+            <div className="bg-gradient-to-r from-emerald-300 to-green-100 rounded-2xl p-8 justify-center text-black">
 
                 <h2 className="text-lg">
 

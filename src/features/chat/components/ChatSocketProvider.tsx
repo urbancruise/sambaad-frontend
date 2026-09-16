@@ -50,21 +50,20 @@ export default function ChatSocketProvider({ children }: { children: React.React
     call.requestOutgoingCall(conversationId, type);
   };
 
-  const activeCallView = call.activeCall && (
-    <ActiveCallView
-      type={call.activeCall.type}
-      localStream={call.localStream}
-      localVideoVersion={call.localVideoVersion}
-      peers={call.activeCall.peers}
-      peerConnections={call.peerConnections}
-      isMuted={call.isMuted}
-      isVideoOff={call.isVideoOff}
-      startedAt={call.activeCall.startedAt}
-      onToggleMute={call.toggleMute}
-      onToggleVideo={call.toggleVideo}
-      onLeave={call.leaveCall}
-    />
-  );
+const activeCallView = call.activeCall && (
+  <ActiveCallView
+    type={call.activeCall.type}
+    localStream={call.localStream}
+    peers={call.activeCall.peers}
+    peerConnections={call.peerConnections}
+    isMuted={call.isMuted}
+    isVideoOff={call.isVideoOff}
+    startedAt={call.activeCall.startedAt}
+    onToggleMute={call.toggleMute}
+    onToggleVideo={call.toggleVideo}
+    onLeave={call.leaveCall}
+  />
+);
 
   return (
     <ChatCallContext.Provider value={{ startCall }}>

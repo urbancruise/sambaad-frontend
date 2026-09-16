@@ -13,7 +13,6 @@ interface RemotePeer {
 interface ActiveCallViewProps {
   type: CallType;
   localStream: MediaStream | null;
-  localVideoVersion: number;
   peers: Record<number, RemotePeer>;
   peerConnections: Map<number, RTCPeerConnection>;
   isMuted: boolean;
@@ -35,6 +34,39 @@ function useElapsed(startedAt: number) {
   return `${mm}:${ss}`;
 }
 
+/**
+ * Plays back a remote peer's audio. This is required for AUDIO-only
+ * calls — previously the audio-call layout rendered no <video> and no
+ * <audio> element at all, so incoming audio had nowhere to play.
+ * (Video calls don't need this — the <video> tag already plays audio.)
+ */
+function AudioSink({ stream }: { stream: MediaStream | null }) {
+  const ref = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (ref.current && stream) {
+      ref.current.srcObject = stream;
+      ref.current.play().catch(() => {
+        // Autoplay can be blocked in rare cases; user interaction
+        // already happened (they joined the call), so this is a
+        // safety net, not expected to actually fire.
+      });
+    }
+  }, [stream]);
+
+  return <audio ref={ref} autoPlay style={{ display: "none" }} />;
+}
+
+/**
+ * Renders a single video tile. `hasVideo` is tracked as REACTIVE state
+ * driven by the track's own `mute`/`unmute`/`ended` events, instead of
+ * being computed once per render from `track.enabled` — that one-shot
+ * check could catch the track mid-negotiation (before frames actually
+ * started flowing) and then never re-check, which is exactly what was
+ * causing "receiver video doesn't show until I toggle my camera": the
+ * toggle was forcing an unrelated re-render that happened to re-run
+ * the check at a point where it now passed.
+ */
 function VideoSurface({
   stream,
   label,
@@ -49,12 +81,35 @@ function VideoSurface({
   videoDisabled?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasVideo, setHasVideo] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current && stream) videoRef.current.srcObject = stream;
-  }, [stream]);
+    const track = stream?.getVideoTracks()[0];
+    if (!track || videoDisabled) {
+      setHasVideo(false);
+      return;
+    }
 
-  const hasVideo = !videoDisabled && stream?.getVideoTracks().some((t) => t.enabled);
+    const update = () => setHasVideo(track.enabled && !track.muted);
+    update();
+
+    track.addEventListener("mute", update);
+    track.addEventListener("unmute", update);
+    track.addEventListener("ended", update);
+
+    return () => {
+      track.removeEventListener("mute", update);
+      track.removeEventListener("unmute", update);
+      track.removeEventListener("ended", update);
+    };
+  }, [stream, videoDisabled]);
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [stream]);
 
   return (
     <div className="relative w-full h-full bg-slate-800 flex items-center justify-center overflow-hidden">
@@ -78,10 +133,37 @@ function VideoSurface({
   );
 }
 
+function ControlButton({
+  active,
+  onClick,
+  label,
+  activeIcon,
+  inactiveIcon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  activeIcon: React.ReactNode;
+  inactiveIcon: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <button
+        onClick={onClick}
+        className={`w-13 h-13 w-[52px] h-[52px] rounded-full flex items-center justify-center transition-colors ${
+          active ? "bg-white text-slate-900" : "bg-white/10 text-white hover:bg-white/20"
+        }`}
+      >
+        {active ? activeIcon : inactiveIcon}
+      </button>
+      <span className="text-[11px] text-white/60">{label}</span>
+    </div>
+  );
+}
+
 export default function ActiveCallView({
   type,
   localStream,
-  localVideoVersion,
   peers,
   peerConnections,
   isMuted,
@@ -95,11 +177,8 @@ export default function ActiveCallView({
   const peerList = Object.entries(peers);
   const quality = useNetworkQuality(peerConnections, true);
 
-  // "focused" = which tile is currently the big one. null = the (only)
-  // remote peer / grid layout, "local" = you've swapped yourself to big.
   const [focusedLocal, setFocusedLocal] = useState(false);
 
-  // Draggable small tile position
   const dragRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x: 16, y: 16 });
   const dragging = useRef(false);
@@ -122,8 +201,7 @@ export default function ActiveCallView({
   };
 
   const primaryPeer = peerList[0]?.[1] ?? null;
-  const primaryPeerLabel = peerList[0]?.[1]?.user.fullName || "Waiting…";
-
+  const primaryPeerLabel = peerList[0]?.[1]?.user.fullName || "Calling…";
   const isOneOnOne = peerList.length <= 1 && type === "VIDEO";
 
   return (
@@ -135,10 +213,9 @@ export default function ActiveCallView({
       )}
 
       <div className="flex items-center justify-center py-2">
-        <span className="text-xs text-white/60 bg-white/10 rounded-full px-3 py-1">{timer}</span>
+        <span className="text-xs text-white/60 bg-white/10 rounded-full px-3 py-1 font-mono">{timer}</span>
       </div>
 
-      {/* One-on-one video: big tile + draggable swappable small tile, WhatsApp-style */}
       {isOneOnOne ? (
         <div className="flex-1 relative">
           <div className="absolute inset-0">
@@ -148,7 +225,6 @@ export default function ActiveCallView({
               muted={focusedLocal}
               mirrored={focusedLocal}
               videoDisabled={focusedLocal ? isVideoOff : false}
-              key={focusedLocal ? "local-big" : "remote-big" + localVideoVersion}
             />
           </div>
 
@@ -167,61 +243,101 @@ export default function ActiveCallView({
               muted={!focusedLocal}
               mirrored={!focusedLocal}
               videoDisabled={focusedLocal ? false : isVideoOff}
-              key={focusedLocal ? "remote-small" : "local-small" + localVideoVersion}
             />
           </div>
         </div>
       ) : type === "VIDEO" ? (
-        // Group video call: grid layout (drag-to-swap not needed with 3+ tiles)
         <div
           className={`flex-1 grid gap-2 p-4 auto-rows-fr overflow-y-auto ${
             peerList.length <= 3 ? "grid-cols-2" : "grid-cols-3"
           }`}
         >
-          <VideoSurface stream={localStream} label="You" muted mirrored videoDisabled={isVideoOff} key={"local" + localVideoVersion} />
+          <VideoSurface stream={localStream} label="You" muted mirrored videoDisabled={isVideoOff} />
           {peerList.map(([userId, peer]) => (
             <VideoSurface key={userId} stream={peer.stream} label={peer.user.fullName || `User ${userId}`} />
           ))}
         </div>
       ) : (
-        // Audio call
-        <div className="flex-1 flex flex-col items-center justify-center gap-3">
-          <div className="w-20 h-20 rounded-full bg-slate-700 flex items-center justify-center text-xl font-bold text-slate-300">
-            {(peerList[0]?.[1].user.fullName || "?").slice(0, 2).toUpperCase()}
-          </div>
-          <p className="text-white/70 text-sm">
-            {peerList.length + 1} on the call — {peerList.map((p) => p[1].user.fullName).join(", ") || "waiting…"}
-          </p>
+        // ---- Professional audio call layout ----
+        <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6">
+          {peerList.length <= 1 ? (
+            <>
+              <div className="relative flex items-center justify-center">
+                {peerList.length === 0 && (
+                  <span className="absolute w-28 h-28 rounded-full bg-emerald-500/25 animate-ping" />
+                )}
+                <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-2xl font-bold text-white ring-4 ring-white/5 shadow-xl">
+                  {(primaryPeer?.user.fullName || "?").slice(0, 2).toUpperCase()}
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-white text-lg font-semibold">
+                  {primaryPeer?.user.fullName || "Calling…"}
+                </p>
+                <p className="text-white/50 text-sm mt-1">
+                  {peerList.length === 0 ? "Calling…" : "Connected"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-white/60 text-sm">{peerList.length + 1} people on this call</p>
+              <div className="flex flex-wrap items-center justify-center gap-5 max-w-sm">
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="w-14 h-14 rounded-full bg-emerald-700 flex items-center justify-center text-sm font-bold text-white ring-2 ring-white/10">
+                    You
+                  </div>
+                  <span className="text-[11px] text-white/50">You</span>
+                </div>
+                {peerList.map(([id, p]) => (
+                  <div key={id} className="flex flex-col items-center gap-1.5">
+                    <div className="w-14 h-14 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-200 ring-2 ring-white/10">
+                      {(p.user.fullName || "?").slice(0, 2).toUpperCase()}
+                    </div>
+                    <span className="text-[11px] text-white/50 max-w-[64px] truncate">
+                      {p.user.fullName || "User"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Real audio playback — this was completely missing before */}
+          {peerList.map(([id, p]) => (
+            <AudioSink key={id} stream={p.stream} />
+          ))}
         </div>
       )}
 
-      <div className="flex items-center justify-center gap-4 py-6">
-        <button
+      <div className="flex items-center justify-center gap-6 py-7">
+        <ControlButton
+          active={isMuted}
           onClick={onToggleMute}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-            isMuted ? "bg-white text-slate-900" : "bg-white/10 text-white hover:bg-white/20"
-          }`}
-        >
-          {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
-        </button>
+          label={isMuted ? "Unmute" : "Mute"}
+          activeIcon={<MicOff size={20} />}
+          inactiveIcon={<Mic size={20} />}
+        />
 
         {type === "VIDEO" && (
-          <button
+          <ControlButton
+            active={isVideoOff}
             onClick={onToggleVideo}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-              isVideoOff ? "bg-white text-slate-900" : "bg-white/10 text-white hover:bg-white/20"
-            }`}
-          >
-            {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
-          </button>
+            label={isVideoOff ? "Start video" : "Stop video"}
+            activeIcon={<VideoOff size={20} />}
+            inactiveIcon={<Video size={20} />}
+          />
         )}
 
-        <button
-          onClick={onLeave}
-          className="w-12 h-12 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center transition-colors"
-        >
-          <PhoneOff size={20} />
-        </button>
+        <div className="flex flex-col items-center gap-1.5">
+          <button
+            onClick={onLeave}
+            className="w-[60px] h-[60px] rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center transition-colors shadow-lg shadow-rose-500/20"
+          >
+            <PhoneOff size={24} />
+          </button>
+          <span className="text-[11px] text-white/60">End call</span>
+        </div>
       </div>
     </div>
   );

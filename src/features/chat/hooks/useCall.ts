@@ -6,8 +6,8 @@ import { CallType, ChatUser, IncomingCall } from "../types";
 
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
-  // TODO: add a TURN server here — STUN-only will silently fail on
-  // some corporate NATs/firewalls.
+  // TODO: add a TURN server — STUN-only will silently fail on some
+  // corporate NATs/firewalls.
 ];
 
 interface RemotePeer {
@@ -35,10 +35,7 @@ export const useCall = () => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-  const [localVideoVersion, setLocalVideoVersion] = useState(0);
 
-  // Real popup window state — a genuine separate OS window (like
-  // WhatsApp Web's call popup), not Document Picture-in-Picture.
   const [callWindow, setCallWindow] = useState<Window | null>(null);
   const [callWindowBlocked, setCallWindowBlocked] = useState(false);
 
@@ -140,19 +137,6 @@ export const useCall = () => {
 
   // ---- Real popup window --------------------------------------------------
 
-  /**
-   * Opens a genuine separate browser window — full native chrome
-   * (minimize / maximize / resize / its own taskbar entry), unlike
-   * Document Picture-in-Picture which is deliberately non-resizable
-   * and has a browser-owned "back to tab" control that closes the
-   * surface. This is what WhatsApp Web actually uses for its call
-   * popup.
-   *
-   * MUST be called synchronously from inside a click handler (no
-   * `await` before it) — otherwise popup blockers will silently
-   * block it because it's no longer considered a direct response to
-   * a user gesture.
-   */
   const openCallWindow = useCallback((type: CallType) => {
     const width = type === "VIDEO" ? 480 : 340;
     const height = type === "VIDEO" ? 420 : 240;
@@ -175,7 +159,6 @@ export const useCall = () => {
     win.document.body.style.background = "#020617";
     win.document.body.style.overflow = "hidden";
 
-    // Copy stylesheets so Tailwind classes render correctly in the new window
     [...document.styleSheets].forEach((sheet) => {
       try {
         const cssRules = [...sheet.cssRules].map((r) => r.cssText).join("");
@@ -197,9 +180,6 @@ export const useCall = () => {
     setCallWindow(win);
     setCallWindowBlocked(false);
 
-    // A real popup doesn't reliably fire `pagehide`/`unload` in every
-    // browser when the user clicks its native close button — polling
-    // `closed` is the one fully reliable signal across browsers.
     closePollRef.current = window.setInterval(() => {
       if (win.closed) {
         if (closePollRef.current) window.clearInterval(closePollRef.current);
@@ -208,7 +188,6 @@ export const useCall = () => {
         setCallWindow(null);
 
         if (!intentionalCloseRef.current) {
-          // User closed the popup directly — treat exactly like hangup.
           leaveCallInternal();
         }
       }
@@ -217,11 +196,10 @@ export const useCall = () => {
     return win;
   }, []);
 
-  // declared after openCallWindow so the poll above can reference it
   const leaveCallInternal = useCallback(() => {
     const call = activeCallRef.current;
     if (!call) return;
-    getSocket().emit("call:leave", { callId: call.callId }); // backend computes duration from call.startedAt
+    getSocket().emit("call:leave", { callId: call.callId });
     cleanupCall();
   }, [cleanupCall]);
 
@@ -304,7 +282,6 @@ export const useCall = () => {
     const next = !isVideoOff;
     stream.getVideoTracks().forEach((t) => (t.enabled = !next));
     setIsVideoOff(next);
-    setLocalVideoVersion((v) => v + 1);
   }, [isVideoOff]);
 
   // ---- Socket event handlers ------------------------------------------
@@ -358,14 +335,32 @@ export const useCall = () => {
       }
     };
 
+    /**
+     * FIX: when removing this peer leaves us with zero remaining peers,
+     * there's no one left to talk to — hang up our side too. Without
+     * this, in a 1:1 call, the person who DIDN'T hang up was stuck in
+     * an empty call forever, because the backend only reports the call
+     * as "ended" once *every* participant has left (correct for group
+     * calls, but means the remaining 1:1 participant never got told).
+     */
     const onUserLeft = ({ userId }: { callId: string; userId: number }) => {
       cleanupPeer(userId);
+
+      const current = activeCallRef.current;
+      const remainingCount = current
+        ? Object.keys(current.peers).filter((id) => Number(id) !== userId).length
+        : 0;
+
       setActiveCall((prev) => {
         if (!prev) return prev;
         const rest = { ...prev.peers };
         delete rest[userId];
         return { ...prev, peers: rest };
       });
+
+      if (remainingCount === 0) {
+        leaveCallInternal();
+      }
     };
 
     const onUserDeclined = ({ userId }: { callId: string; userId: number }) => {
@@ -396,7 +391,7 @@ export const useCall = () => {
       socket.off("call:ended", onCallEnded);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getOrCreatePeerConnection, cleanupPeer, cleanupCall]);
+  }, [getOrCreatePeerConnection, cleanupPeer, cleanupCall, leaveCallInternal]);
 
   return {
     incomingCall,
@@ -405,7 +400,6 @@ export const useCall = () => {
     localStream,
     isMuted,
     isVideoOff,
-    localVideoVersion,
     peerConnections: peerConnections.current,
     callWindow,
     callWindowBlocked,
