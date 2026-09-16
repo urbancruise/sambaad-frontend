@@ -132,9 +132,10 @@ export const useCall = () => {
   /**
    * Tries to open a real separate OS window (Chrome/Edge's Document
    * Picture-in-Picture API — same mechanism Google Meet uses). Returns
-   * true if it succeeded. Callers should render ActiveCallView into
-   * this window's document when true, and fall back to an in-page
-   * floating overlay when false (Safari/Firefox, or user declines).
+   * the window if it succeeded, or null. Callers should render
+   * ActiveCallView into this window's document when non-null, and
+   * fall back to an in-page floating overlay when null (Safari/
+   * Firefox, or the request failed).
    */
   const openPipWindow = useCallback(async (width = 420, height = 320) => {
     // @ts-expect-error - experimental API, not in TS lib yet
@@ -174,11 +175,11 @@ export const useCall = () => {
     }
   }, []);
 
-  // declared after so leaveCall can be referenced inside openPipWindow's listener
+  // declared after so it can be referenced inside openPipWindow's listener
   const leaveCallInternal = useCallback(() => {
     const call = activeCallRef.current;
     if (!call) return;
-    getSocket().emit("call:leave", { callId: call.callId, durationSeconds: Math.round((Date.now() - call.startedAt) / 1000) });
+    getSocket().emit("call:leave", { callId: call.callId }); // backend computes duration itself from call.startedAt
     cleanupCall();
   }, [cleanupCall]);
 
