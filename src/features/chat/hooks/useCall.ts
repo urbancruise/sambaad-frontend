@@ -6,11 +6,8 @@ import { CallType, ChatUser, IncomingCall } from "../types";
 
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
-  // TODO: add a TURN server here (self-hosted coturn or a hosted
-  // provider). STUN-only will silently fail to connect for some
-  // users behind corporate NATs/firewalls — this is very likely
-  // part of the "sometimes it just doesn't connect" reports.
-  // { urls: "turn:your-turn-server:3478", username: "...", credential: "..." },
+  // TODO: add a TURN server here — STUN-only will silently fail on
+  // some corporate NATs/firewalls.
 ];
 
 interface RemotePeer {
@@ -23,7 +20,7 @@ interface ActiveCallState {
   conversationId: string;
   type: CallType;
   peers: Record<number, RemotePeer>;
-  startedAt: number; // Date.now() when WE joined/started
+  startedAt: number;
 }
 
 interface DeviceChoice {
@@ -38,7 +35,12 @@ export const useCall = () => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-  const [localVideoVersion, setLocalVideoVersion] = useState(0); // bump to force tile re-check
+  const [localVideoVersion, setLocalVideoVersion] = useState(0);
+
+  // Real popup window state — a genuine separate OS window (like
+  // WhatsApp Web's call popup), not Document Picture-in-Picture.
+  const [callWindow, setCallWindow] = useState<Window | null>(null);
+  const [callWindowBlocked, setCallWindowBlocked] = useState(false);
 
   const peerConnections = useRef<Map<number, RTCPeerConnection>>(new Map());
   const pendingIceCandidates = useRef<Map<number, RTCIceCandidateInit[]>>(new Map());
@@ -47,7 +49,9 @@ export const useCall = () => {
   const activeCallRef = useRef<ActiveCallState | null>(null);
   activeCallRef.current = activeCall;
 
-  const pipWindowRef = useRef<Window | null>(null);
+  const callWindowRef = useRef<Window | null>(null);
+  const closePollRef = useRef<number | null>(null);
+  const intentionalCloseRef = useRef(false);
 
   const cleanupPeer = useCallback((userId: number) => {
     peerConnections.current.get(userId)?.close();
@@ -55,13 +59,20 @@ export const useCall = () => {
     pendingIceCandidates.current.delete(userId);
   }, []);
 
-  const closePipWindow = useCallback(() => {
+  const closeCallWindow = useCallback(() => {
+    intentionalCloseRef.current = true;
+    if (closePollRef.current) {
+      window.clearInterval(closePollRef.current);
+      closePollRef.current = null;
+    }
     try {
-      pipWindowRef.current?.close();
+      callWindowRef.current?.close();
     } catch {
       // ignore
     }
-    pipWindowRef.current = null;
+    callWindowRef.current = null;
+    setCallWindow(null);
+    setCallWindowBlocked(false);
   }, []);
 
   const cleanupCall = useCallback(() => {
@@ -75,8 +86,8 @@ export const useCall = () => {
     setActiveCall(null);
     setIsMuted(false);
     setIsVideoOff(false);
-    closePipWindow();
-  }, [closePipWindow]);
+    closeCallWindow();
+  }, [closeCallWindow]);
 
   const getOrCreatePeerConnection = useCallback((remoteUserId: number, remoteUser: ChatUser) => {
     let pc = peerConnections.current.get(remoteUserId);
@@ -127,66 +138,96 @@ export const useCall = () => {
     return stream;
   }, []);
 
-  // ---- Popup / Document Picture-in-Picture -------------------------------
+  // ---- Real popup window --------------------------------------------------
 
   /**
-   * Tries to open a real separate OS window (Chrome/Edge's Document
-   * Picture-in-Picture API — same mechanism Google Meet uses). Returns
-   * the window if it succeeded, or null. Callers should render
-   * ActiveCallView into this window's document when non-null, and
-   * fall back to an in-page floating overlay when null (Safari/
-   * Firefox, or the request failed).
+   * Opens a genuine separate browser window — full native chrome
+   * (minimize / maximize / resize / its own taskbar entry), unlike
+   * Document Picture-in-Picture which is deliberately non-resizable
+   * and has a browser-owned "back to tab" control that closes the
+   * surface. This is what WhatsApp Web actually uses for its call
+   * popup.
+   *
+   * MUST be called synchronously from inside a click handler (no
+   * `await` before it) — otherwise popup blockers will silently
+   * block it because it's no longer considered a direct response to
+   * a user gesture.
    */
-  const openPipWindow = useCallback(async (width = 420, height = 320) => {
-    // @ts-expect-error - experimental API, not in TS lib yet
-    if (!window.documentPictureInPicture) return null;
-    try {
-      // @ts-expect-error - experimental API
-      const pipWindow: Window = await window.documentPictureInPicture.requestWindow({ width, height });
-      pipWindowRef.current = pipWindow;
+  const openCallWindow = useCallback((type: CallType) => {
+    const width = type === "VIDEO" ? 480 : 340;
+    const height = type === "VIDEO" ? 420 : 240;
+    const left = Math.round(window.screenX + (window.outerWidth - width) / 2);
+    const top = Math.round(window.screenY + (window.outerHeight - height) / 2);
 
-      // Copy stylesheets so Tailwind classes render correctly inside the popup
-      [...document.styleSheets].forEach((sheet) => {
-        try {
-          const cssRules = [...sheet.cssRules].map((r) => r.cssText).join("");
-          const style = document.createElement("style");
-          style.textContent = cssRules;
-          pipWindow.document.head.appendChild(style);
-        } catch {
-          // Cross-origin stylesheets can't be read — skip them
-          if (sheet.href) {
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = sheet.href;
-            pipWindow.document.head.appendChild(link);
-          }
-        }
-      });
+    const win = window.open(
+      "",
+      "sambaad-call",
+      `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=no`
+    );
 
-      pipWindow.addEventListener("pagehide", () => {
-        // User closed the popup window directly — end the call same as hangup
-        pipWindowRef.current = null;
-        leaveCallInternal();
-      });
-
-      return pipWindow;
-    } catch {
+    if (!win) {
+      setCallWindowBlocked(true);
       return null;
     }
+
+    win.document.title = type === "VIDEO" ? "Video call" : "Voice call";
+    win.document.body.style.margin = "0";
+    win.document.body.style.background = "#020617";
+    win.document.body.style.overflow = "hidden";
+
+    // Copy stylesheets so Tailwind classes render correctly in the new window
+    [...document.styleSheets].forEach((sheet) => {
+      try {
+        const cssRules = [...sheet.cssRules].map((r) => r.cssText).join("");
+        const style = win.document.createElement("style");
+        style.textContent = cssRules;
+        win.document.head.appendChild(style);
+      } catch {
+        if (sheet.href) {
+          const link = win.document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = sheet.href;
+          win.document.head.appendChild(link);
+        }
+      }
+    });
+
+    callWindowRef.current = win;
+    intentionalCloseRef.current = false;
+    setCallWindow(win);
+    setCallWindowBlocked(false);
+
+    // A real popup doesn't reliably fire `pagehide`/`unload` in every
+    // browser when the user clicks its native close button — polling
+    // `closed` is the one fully reliable signal across browsers.
+    closePollRef.current = window.setInterval(() => {
+      if (win.closed) {
+        if (closePollRef.current) window.clearInterval(closePollRef.current);
+        closePollRef.current = null;
+        callWindowRef.current = null;
+        setCallWindow(null);
+
+        if (!intentionalCloseRef.current) {
+          // User closed the popup directly — treat exactly like hangup.
+          leaveCallInternal();
+        }
+      }
+    }, 500);
+
+    return win;
   }, []);
 
-  // declared after so it can be referenced inside openPipWindow's listener
+  // declared after openCallWindow so the poll above can reference it
   const leaveCallInternal = useCallback(() => {
     const call = activeCallRef.current;
     if (!call) return;
-    getSocket().emit("call:leave", { callId: call.callId }); // backend computes duration itself from call.startedAt
+    getSocket().emit("call:leave", { callId: call.callId }); // backend computes duration from call.startedAt
     cleanupCall();
   }, [cleanupCall]);
 
   // ---- Outgoing / incoming call lifecycle --------------------------------
 
   const requestOutgoingCall = useCallback((conversationId: string, type: CallType) => {
-    // Step 1: just opens the device-select modal; the actual call starts in startCall()
     setPendingOutgoing({ conversationId, type });
   }, []);
 
@@ -263,7 +304,7 @@ export const useCall = () => {
     const next = !isVideoOff;
     stream.getVideoTracks().forEach((t) => (t.enabled = !next));
     setIsVideoOff(next);
-    setLocalVideoVersion((v) => v + 1); // force the tile to re-check track.enabled
+    setLocalVideoVersion((v) => v + 1);
   }, [isVideoOff]);
 
   // ---- Socket event handlers ------------------------------------------
@@ -366,6 +407,8 @@ export const useCall = () => {
     isVideoOff,
     localVideoVersion,
     peerConnections: peerConnections.current,
+    callWindow,
+    callWindowBlocked,
     requestOutgoingCall,
     cancelOutgoingRequest,
     startCall,
@@ -374,7 +417,7 @@ export const useCall = () => {
     leaveCall,
     toggleMute,
     toggleVideo,
-    openPipWindow,
+    openCallWindow,
     registerCallSocketHandlers,
   };
 };
