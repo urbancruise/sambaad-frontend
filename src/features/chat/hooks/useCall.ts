@@ -4,15 +4,14 @@ import { useCallback, useRef, useState } from "react";
 import { getSocket } from "@/src/lib/socket";
 import { CallType, ChatUser, IncomingCall } from "../types";
 
-/**
- * NOTE on reliability: this uses only a public STUN server. STUN is
- * enough for most home/office networks, but some corporate firewalls
- * and symmetric NATs will silently fail to connect without a TURN
- * server. If calls work for some users but not others, that's almost
- * certainly it — add a TURN server (e.g. self-hosted coturn, or a
- * hosted provider) to the iceServers list below when you hit that.
- */
-const ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
+const ICE_SERVERS: RTCIceServer[] = [
+  { urls: "stun:stun.l.google.com:19302" },
+  // TODO: add a TURN server here (self-hosted coturn or a hosted
+  // provider). STUN-only will silently fail to connect for some
+  // users behind corporate NATs/firewalls — this is very likely
+  // part of the "sometimes it just doesn't connect" reports.
+  // { urls: "turn:your-turn-server:3478", username: "...", credential: "..." },
+];
 
 interface RemotePeer {
   user: ChatUser;
@@ -24,28 +23,45 @@ interface ActiveCallState {
   conversationId: string;
   type: CallType;
   peers: Record<number, RemotePeer>;
+  startedAt: number; // Date.now() when WE joined/started
+}
+
+interface DeviceChoice {
+  audioDeviceId?: string;
+  videoDeviceId?: string;
 }
 
 export const useCall = () => {
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
+  const [pendingOutgoing, setPendingOutgoing] = useState<{ conversationId: string; type: CallType } | null>(null);
   const [activeCall, setActiveCall] = useState<ActiveCallState | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [localVideoVersion, setLocalVideoVersion] = useState(0); // bump to force tile re-check
 
   const peerConnections = useRef<Map<number, RTCPeerConnection>>(new Map());
   const pendingIceCandidates = useRef<Map<number, RTCIceCandidateInit[]>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
 
-  // Kept in a ref too, so socket callbacks registered once always see
-  // the latest activeCall without needing to be re-registered.
   const activeCallRef = useRef<ActiveCallState | null>(null);
   activeCallRef.current = activeCall;
+
+  const pipWindowRef = useRef<Window | null>(null);
 
   const cleanupPeer = useCallback((userId: number) => {
     peerConnections.current.get(userId)?.close();
     peerConnections.current.delete(userId);
     pendingIceCandidates.current.delete(userId);
+  }, []);
+
+  const closePipWindow = useCallback(() => {
+    try {
+      pipWindowRef.current?.close();
+    } catch {
+      // ignore
+    }
+    pipWindowRef.current = null;
   }, []);
 
   const cleanupCall = useCallback(() => {
@@ -59,7 +75,8 @@ export const useCall = () => {
     setActiveCall(null);
     setIsMuted(false);
     setIsVideoOff(false);
-  }, []);
+    closePipWindow();
+  }, [closePipWindow]);
 
   const getOrCreatePeerConnection = useCallback((remoteUserId: number, remoteUser: ChatUser) => {
     let pc = peerConnections.current.get(remoteUserId);
@@ -95,21 +112,89 @@ export const useCall = () => {
     return pc;
   }, []);
 
-  const acquireLocalMedia = useCallback(async (type: CallType) => {
+  const acquireLocalMedia = useCallback(async (type: CallType, devices?: DeviceChoice) => {
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: type === "VIDEO",
+      audio: devices?.audioDeviceId ? { deviceId: { exact: devices.audioDeviceId } } : true,
+      video:
+        type === "VIDEO"
+          ? devices?.videoDeviceId
+            ? { deviceId: { exact: devices.videoDeviceId } }
+            : true
+          : false,
     });
     localStreamRef.current = stream;
     setLocalStream(stream);
     return stream;
   }, []);
 
+  // ---- Popup / Document Picture-in-Picture -------------------------------
+
+  /**
+   * Tries to open a real separate OS window (Chrome/Edge's Document
+   * Picture-in-Picture API — same mechanism Google Meet uses). Returns
+   * true if it succeeded. Callers should render ActiveCallView into
+   * this window's document when true, and fall back to an in-page
+   * floating overlay when false (Safari/Firefox, or user declines).
+   */
+  const openPipWindow = useCallback(async (width = 420, height = 320) => {
+    // @ts-expect-error - experimental API, not in TS lib yet
+    if (!window.documentPictureInPicture) return null;
+    try {
+      // @ts-expect-error - experimental API
+      const pipWindow: Window = await window.documentPictureInPicture.requestWindow({ width, height });
+      pipWindowRef.current = pipWindow;
+
+      // Copy stylesheets so Tailwind classes render correctly inside the popup
+      [...document.styleSheets].forEach((sheet) => {
+        try {
+          const cssRules = [...sheet.cssRules].map((r) => r.cssText).join("");
+          const style = document.createElement("style");
+          style.textContent = cssRules;
+          pipWindow.document.head.appendChild(style);
+        } catch {
+          // Cross-origin stylesheets can't be read — skip them
+          if (sheet.href) {
+            const link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = sheet.href;
+            pipWindow.document.head.appendChild(link);
+          }
+        }
+      });
+
+      pipWindow.addEventListener("pagehide", () => {
+        // User closed the popup window directly — end the call same as hangup
+        pipWindowRef.current = null;
+        leaveCallInternal();
+      });
+
+      return pipWindow;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // declared after so leaveCall can be referenced inside openPipWindow's listener
+  const leaveCallInternal = useCallback(() => {
+    const call = activeCallRef.current;
+    if (!call) return;
+    getSocket().emit("call:leave", { callId: call.callId, durationSeconds: Math.round((Date.now() - call.startedAt) / 1000) });
+    cleanupCall();
+  }, [cleanupCall]);
+
   // ---- Outgoing / incoming call lifecycle --------------------------------
 
+  const requestOutgoingCall = useCallback((conversationId: string, type: CallType) => {
+    // Step 1: just opens the device-select modal; the actual call starts in startCall()
+    setPendingOutgoing({ conversationId, type });
+  }, []);
+
+  const cancelOutgoingRequest = useCallback(() => setPendingOutgoing(null), []);
+
   const startCall = useCallback(
-    async (conversationId: string, type: CallType) => {
-      await acquireLocalMedia(type);
+    async (conversationId: string, type: CallType, devices?: DeviceChoice) => {
+      await acquireLocalMedia(type, devices);
+      setPendingOutgoing(null);
 
       return new Promise<void>((resolve, reject) => {
         getSocket().emit(
@@ -121,7 +206,7 @@ export const useCall = () => {
               reject(new Error(ack.error || "Failed to start call"));
               return;
             }
-            setActiveCall({ callId: ack.call.id, conversationId, type, peers: {} });
+            setActiveCall({ callId: ack.call.id, conversationId, type, peers: {}, startedAt: Date.now() });
             resolve();
           }
         );
@@ -130,27 +215,28 @@ export const useCall = () => {
     [acquireLocalMedia, cleanupCall]
   );
 
-  const acceptIncomingCall = useCallback(async () => {
-    if (!incomingCall) return;
-    const { callId, conversationId, type } = incomingCall;
+  const acceptIncomingCall = useCallback(
+    async (devices?: DeviceChoice) => {
+      if (!incomingCall) return;
+      const { callId, conversationId, type } = incomingCall;
 
-    await acquireLocalMedia(type);
-    setIncomingCall(null);
+      await acquireLocalMedia(type, devices);
+      setIncomingCall(null);
 
-    getSocket().emit(
-      "call:accept",
-      { callId },
-      (ack: { ok: boolean; existingParticipants?: ChatUser[]; error?: string }) => {
-        if (!ack.ok) {
-          cleanupCall();
-          return;
+      getSocket().emit(
+        "call:accept",
+        { callId },
+        (ack: { ok: boolean; existingParticipants?: ChatUser[]; error?: string }) => {
+          if (!ack.ok) {
+            cleanupCall();
+            return;
+          }
+          setActiveCall({ callId, conversationId, type, peers: {}, startedAt: Date.now() });
         }
-        setActiveCall({ callId, conversationId, type, peers: {} });
-        // Per the mesh convention, existing participants send US the
-        // offer next — we just wait for `webrtc:offer` and answer it.
-      }
-    );
-  }, [incomingCall, acquireLocalMedia, cleanupCall]);
+      );
+    },
+    [incomingCall, acquireLocalMedia, cleanupCall]
+  );
 
   const declineIncomingCall = useCallback(() => {
     if (!incomingCall) return;
@@ -159,10 +245,8 @@ export const useCall = () => {
   }, [incomingCall]);
 
   const leaveCall = useCallback(() => {
-    if (!activeCall) return;
-    getSocket().emit("call:leave", { callId: activeCall.callId });
-    cleanupCall();
-  }, [activeCall, cleanupCall]);
+    leaveCallInternal();
+  }, [leaveCallInternal]);
 
   const toggleMute = useCallback(() => {
     const stream = localStreamRef.current;
@@ -178,11 +262,10 @@ export const useCall = () => {
     const next = !isVideoOff;
     stream.getVideoTracks().forEach((t) => (t.enabled = !next));
     setIsVideoOff(next);
+    setLocalVideoVersion((v) => v + 1); // force the tile to re-check track.enabled
   }, [isVideoOff]);
 
   // ---- Socket event handlers ------------------------------------------
-  // Call registerCallSocketHandlers() once (see ChatSocketProvider) to
-  // wire these into the shared socket connection.
 
   const registerCallSocketHandlers = useCallback(() => {
     const socket = getSocket();
@@ -191,9 +274,6 @@ export const useCall = () => {
       setIncomingCall(payload);
     };
 
-    // An existing participant learns a new user joined — per the mesh
-    // convention, WE initiate the offer to them (avoids both sides
-    // racing to offer at once).
     const onUserJoined = async ({ userId }: { callId: string; userId: number }) => {
       if (!activeCallRef.current) return;
       const pc = getOrCreatePeerConnection(userId, { id: userId, fullName: "" });
@@ -202,14 +282,7 @@ export const useCall = () => {
       socket.emit("webrtc:offer", { callId: activeCallRef.current.callId, toUserId: userId, sdp: offer });
     };
 
-    const onOffer = async ({
-      fromUserId,
-      sdp,
-    }: {
-      callId: string;
-      fromUserId: number;
-      sdp: RTCSessionDescriptionInit;
-    }) => {
+    const onOffer = async ({ fromUserId, sdp }: { callId: string; fromUserId: number; sdp: RTCSessionDescriptionInit }) => {
       const pc = getOrCreatePeerConnection(fromUserId, { id: fromUserId, fullName: "" });
       await pc.setRemoteDescription(new RTCSessionDescription(sdp));
 
@@ -222,14 +295,7 @@ export const useCall = () => {
       socket.emit("webrtc:answer", { callId: activeCallRef.current?.callId, toUserId: fromUserId, sdp: answer });
     };
 
-    const onAnswer = async ({
-      fromUserId,
-      sdp,
-    }: {
-      callId: string;
-      fromUserId: number;
-      sdp: RTCSessionDescriptionInit;
-    }) => {
+    const onAnswer = async ({ fromUserId, sdp }: { callId: string; fromUserId: number; sdp: RTCSessionDescriptionInit }) => {
       const pc = peerConnections.current.get(fromUserId);
       if (!pc) return;
       await pc.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -239,14 +305,7 @@ export const useCall = () => {
       pendingIceCandidates.current.delete(fromUserId);
     };
 
-    const onIceCandidate = async ({
-      fromUserId,
-      candidate,
-    }: {
-      callId: string;
-      fromUserId: number;
-      candidate: RTCIceCandidateInit;
-    }) => {
+    const onIceCandidate = async ({ fromUserId, candidate }: { callId: string; fromUserId: number; candidate: RTCIceCandidateInit }) => {
       const pc = peerConnections.current.get(fromUserId);
       if (pc?.remoteDescription) {
         await pc.addIceCandidate(new RTCIceCandidate(candidate));
@@ -299,16 +358,22 @@ export const useCall = () => {
 
   return {
     incomingCall,
+    pendingOutgoing,
     activeCall,
     localStream,
     isMuted,
     isVideoOff,
+    localVideoVersion,
+    peerConnections: peerConnections.current,
+    requestOutgoingCall,
+    cancelOutgoingRequest,
     startCall,
     acceptIncomingCall,
     declineIncomingCall,
     leaveCall,
     toggleMute,
     toggleVideo,
+    openPipWindow,
     registerCallSocketHandlers,
   };
 };
