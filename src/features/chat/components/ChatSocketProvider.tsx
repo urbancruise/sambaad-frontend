@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { PhoneCall, X } from "lucide-react";
 import { useAuth } from "@/src/features/auth/hooks/useAuth";
 import { useChatSocket } from "../hooks/useChatSocket";
 import { useCall } from "../hooks/useCall";
@@ -22,15 +23,27 @@ export const useChatCall = () => {
   return ctx;
 };
 
+function useElapsedLabel(startedAt: number) {
+  const [label, setLabel] = useState("00:00");
+  useEffect(() => {
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
+      const ss = String(elapsed % 60).padStart(2, "0");
+      setLabel(`${mm}:${ss}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [startedAt]);
+  return label;
+}
+
 export default function ChatSocketProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   useChatSocket();
 
   const call = useCall();
-
-  // Tracks whether the incoming-call flow has moved past the ring
-  // screen into "pick your devices" — separate from call.incomingCall
-  // itself so the ring modal and the device picker don't show at once.
   const [showIncomingDevicePicker, setShowIncomingDevicePicker] = useState(false);
 
   useEffect(() => {
@@ -40,36 +53,40 @@ export default function ChatSocketProvider({ children }: { children: React.React
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  // If the caller hangs up / call gets declined elsewhere while we're
-  // still picking devices, close that picker too.
   useEffect(() => {
     if (!call.incomingCall) setShowIncomingDevicePicker(false);
   }, [call.incomingCall]);
+
+  // Auto-dismiss error toast
+  useEffect(() => {
+    if (!call.callError) return;
+    const id = setTimeout(call.clearCallError, 6000);
+    return () => clearTimeout(id);
+  }, [call.callError, call.clearCallError]);
 
   const startCall = (conversationId: string, type: CallType) => {
     call.requestOutgoingCall(conversationId, type);
   };
 
-const activeCallView = call.activeCall && (
-  <ActiveCallView
-    type={call.activeCall.type}
-    localStream={call.localStream}
-    peers={call.activeCall.peers}
-    peerConnections={call.peerConnections}
-    isMuted={call.isMuted}
-    isVideoOff={call.isVideoOff}
-    startedAt={call.activeCall.startedAt}
-    onToggleMute={call.toggleMute}
-    onToggleVideo={call.toggleVideo}
-    onLeave={call.leaveCall}
-  />
-);
+  const activeCallView = call.activeCall && (
+    <ActiveCallView
+      type={call.activeCall.type}
+      localStream={call.localStream}
+      peers={call.activeCall.peers}
+      peerConnections={call.peerConnections}
+      isMuted={call.isMuted}
+      isVideoOff={call.isVideoOff}
+      startedAt={call.activeCall.startedAt}
+      onToggleMute={call.toggleMute}
+      onToggleVideo={call.toggleVideo}
+      onLeave={call.leaveCall}
+    />
+  );
 
   return (
     <ChatCallContext.Provider value={{ startCall }}>
       {children}
 
-      {/* Outgoing: pick devices, then open the real popup + dial — all synchronous within this click */}
       {call.pendingOutgoing && (
         <DeviceSelectModal
           type={call.pendingOutgoing.type}
@@ -82,7 +99,6 @@ const activeCallView = call.activeCall && (
         />
       )}
 
-      {/* Incoming: ring first */}
       {call.incomingCall && !showIncomingDevicePicker && (
         <IncomingCallModal
           call={call.incomingCall}
@@ -91,7 +107,6 @@ const activeCallView = call.activeCall && (
         />
       )}
 
-      {/* Incoming: then pick devices, then open the real popup + accept — same synchronous rule */}
       {call.incomingCall && showIncomingDevicePicker && (
         <DeviceSelectModal
           type={call.incomingCall.type}
@@ -108,11 +123,39 @@ const activeCallView = call.activeCall && (
         />
       )}
 
-      {/* Real popup window — native minimize/maximize/resize, no "back to tab" trap */}
       {call.activeCall && call.callWindow && createPortal(activeCallView, call.callWindow.document.body)}
-
-      {/* Fallback if the browser's popup blocker prevented the window from opening */}
       {call.activeCall && !call.callWindow && call.callWindowBlocked && activeCallView}
+
+      {/* "Return to call" bar — shows in the main app window whenever the
+          call has been popped out, so the user can get back to it even
+          if they minimized/lost track of the popup window. */}
+      {call.activeCall && call.callWindow && <ReturnToCallBar startedAt={call.activeCall.startedAt} onReturn={call.focusCallWindow} />}
+
+      {/* Error toast — this is what was previously an invisible, uncaught
+          console error with no user-facing feedback at all. */}
+      {call.callError && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[90] flex items-center gap-2 bg-rose-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg max-w-sm">
+          <span className="flex-1">{call.callError}</span>
+          <button onClick={call.clearCallError} className="p-0.5 hover:bg-white/20 rounded">
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </ChatCallContext.Provider>
+  );
+}
+
+function ReturnToCallBar({ startedAt, onReturn }: { startedAt: number; onReturn: () => void }) {
+  const label = useElapsedLabel(startedAt);
+  return (
+    <button
+      onClick={onReturn}
+      className="fixed bottom-5 right-5 z-[85] flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold pl-3 pr-4 py-2.5 rounded-full shadow-xl transition-colors"
+    >
+      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+      <PhoneCall size={15} />
+      In call · {label}
+      <span className="text-white/70 font-normal">Return</span>
+    </button>
   );
 }

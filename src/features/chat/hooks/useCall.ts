@@ -6,8 +6,6 @@ import { CallType, ChatUser, IncomingCall } from "../types";
 
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
-  // TODO: add a TURN server — STUN-only will silently fail on some
-  // corporate NATs/firewalls.
 ];
 
 interface RemotePeer {
@@ -35,6 +33,7 @@ export const useCall = () => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [callError, setCallError] = useState<string | null>(null);
 
   const [callWindow, setCallWindow] = useState<Window | null>(null);
   const [callWindowBlocked, setCallWindowBlocked] = useState(false);
@@ -49,6 +48,8 @@ export const useCall = () => {
   const callWindowRef = useRef<Window | null>(null);
   const closePollRef = useRef<number | null>(null);
   const intentionalCloseRef = useRef(false);
+
+  const clearCallError = useCallback(() => setCallError(null), []);
 
   const cleanupPeer = useCallback((userId: number) => {
     peerConnections.current.get(userId)?.close();
@@ -196,6 +197,15 @@ export const useCall = () => {
     return win;
   }, []);
 
+  /** Brings the popped-out call window back into focus/foreground — used by the "Return to call" button. */
+  const focusCallWindow = useCallback(() => {
+    try {
+      callWindowRef.current?.focus();
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const leaveCallInternal = useCallback(() => {
     const call = activeCallRef.current;
     if (!call) return;
@@ -206,31 +216,41 @@ export const useCall = () => {
   // ---- Outgoing / incoming call lifecycle --------------------------------
 
   const requestOutgoingCall = useCallback((conversationId: string, type: CallType) => {
+    setCallError(null);
     setPendingOutgoing({ conversationId, type });
   }, []);
 
   const cancelOutgoingRequest = useCallback(() => setPendingOutgoing(null), []);
 
+  /**
+   * FIX: no longer rejects a Promise that nothing was catching (that
+   * was the source of the uncaught error). On failure, it cleans up
+   * (closing any popup window already opened) and surfaces a readable
+   * message via `callError` instead of throwing into the void.
+   */
   const startCall = useCallback(
     async (conversationId: string, type: CallType, devices?: DeviceChoice) => {
-      await acquireLocalMedia(type, devices);
+      try {
+        await acquireLocalMedia(type, devices);
+      } catch (err) {
+        setPendingOutgoing(null);
+        setCallError("Couldn't access your camera/microphone. Check permissions and try again.");
+        return;
+      }
       setPendingOutgoing(null);
 
-      return new Promise<void>((resolve, reject) => {
-        getSocket().emit(
-          "call:initiate",
-          { conversationId, type },
-          (ack: { ok: boolean; call?: { id: string }; error?: string }) => {
-            if (!ack.ok || !ack.call) {
-              cleanupCall();
-              reject(new Error(ack.error || "Failed to start call"));
-              return;
-            }
-            setActiveCall({ callId: ack.call.id, conversationId, type, peers: {}, startedAt: Date.now() });
-            resolve();
+      getSocket().emit(
+        "call:initiate",
+        { conversationId, type },
+        (ack: { ok: boolean; call?: { id: string }; error?: string }) => {
+          if (!ack.ok || !ack.call) {
+            cleanupCall();
+            setCallError(ack.error || "Failed to start call. Please try again.");
+            return;
           }
-        );
-      });
+          setActiveCall({ callId: ack.call.id, conversationId, type, peers: {}, startedAt: Date.now() });
+        }
+      );
     },
     [acquireLocalMedia, cleanupCall]
   );
@@ -240,7 +260,13 @@ export const useCall = () => {
       if (!incomingCall) return;
       const { callId, conversationId, type } = incomingCall;
 
-      await acquireLocalMedia(type, devices);
+      try {
+        await acquireLocalMedia(type, devices);
+      } catch {
+        setIncomingCall(null);
+        setCallError("Couldn't access your camera/microphone. Check permissions and try again.");
+        return;
+      }
       setIncomingCall(null);
 
       getSocket().emit(
@@ -249,6 +275,7 @@ export const useCall = () => {
         (ack: { ok: boolean; existingParticipants?: ChatUser[]; error?: string }) => {
           if (!ack.ok) {
             cleanupCall();
+            setCallError(ack.error || "Failed to join call. Please try again.");
             return;
           }
           setActiveCall({ callId, conversationId, type, peers: {}, startedAt: Date.now() });
@@ -335,14 +362,6 @@ export const useCall = () => {
       }
     };
 
-    /**
-     * FIX: when removing this peer leaves us with zero remaining peers,
-     * there's no one left to talk to — hang up our side too. Without
-     * this, in a 1:1 call, the person who DIDN'T hang up was stuck in
-     * an empty call forever, because the backend only reports the call
-     * as "ended" once *every* participant has left (correct for group
-     * calls, but means the remaining 1:1 participant never got told).
-     */
     const onUserLeft = ({ userId }: { callId: string; userId: number }) => {
       cleanupPeer(userId);
 
@@ -400,6 +419,8 @@ export const useCall = () => {
     localStream,
     isMuted,
     isVideoOff,
+    callError,
+    clearCallError,
     peerConnections: peerConnections.current,
     callWindow,
     callWindowBlocked,
@@ -412,6 +433,7 @@ export const useCall = () => {
     toggleMute,
     toggleVideo,
     openCallWindow,
+    focusCallWindow,
     registerCallSocketHandlers,
   };
 };
