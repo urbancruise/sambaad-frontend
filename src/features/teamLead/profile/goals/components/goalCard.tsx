@@ -265,15 +265,28 @@ export default function GoalCard({ goal, onChanged }: Props) {
         </div>
       </div>
 
-      {/* Embedded Modals */}
-      <CreateEmployeeTaskModal
-        open={addTaskOpen}
-        onClose={() => setAddTaskOpen(false)}
-        onCreated={() => onChanged?.()}
-        defaultGoalId={goal.id}
-      />
+      {/*
+        Embedded Modals — mounted ONLY while open.
 
-      {isCreator && (
+        Previously these were always present in the tree, with the modal
+        component itself doing `if (!open) return null` internally. That
+        check runs AFTER hooks, so every hook inside the modal (including
+        useEmployeeGoals' fetch-on-mount effect) still ran for every single
+        GoalCard on the page, all at once — that's what was flooding the
+        API with one goals-fetch per card the instant the Goals tab
+        rendered. Gating the render here means the modal (and its hooks)
+        don't exist at all until the user actually clicks the button.
+      */}
+      {addTaskOpen && (
+        <CreateEmployeeTaskModal
+          open={addTaskOpen}
+          onClose={() => setAddTaskOpen(false)}
+          onCreated={() => onChanged?.()}
+          defaultGoalId={goal.id}
+        />
+      )}
+
+      {editOpen && isCreator && (
         <EditEmployeeGoalModal
           open={editOpen}
           goal={goal}
