@@ -6,6 +6,11 @@ import { CallType, ChatUser, IncomingCall } from "../types";
 
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
+  {
+    urls: "turn:your-turn-host:3478",
+    username: "your-username",
+    credential: "your-credential",
+  },
 ];
 
 interface RemotePeer {
@@ -313,104 +318,116 @@ export const useCall = () => {
 
   // ---- Socket event handlers ------------------------------------------
 
-  const registerCallSocketHandlers = useCallback(() => {
-    const socket = getSocket();
+const registerCallSocketHandlers = useCallback(() => {
+  const socket = getSocket();
 
-    const onIncoming = (payload: IncomingCall) => {
-      setIncomingCall(payload);
-    };
+  // Fires on the very first connect AND every automatic reconnect
+  // after a network blip. If we still think we're in a call, tell
+  // the server we're back before its grace-period timer (see
+  // call.socket.js) decides we actually hung up.
+  const onConnect = () => {
+    if (activeCallRef.current) {
+      socket.emit("call:rejoin", { callId: activeCallRef.current.callId });
+    }
+  };
 
-    const onUserJoined = async ({ userId }: { callId: string; userId: number }) => {
-      if (!activeCallRef.current) return;
-      const pc = getOrCreatePeerConnection(userId, { id: userId, fullName: "" });
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socket.emit("webrtc:offer", { callId: activeCallRef.current.callId, toUserId: userId, sdp: offer });
-    };
+  const onIncoming = (payload: IncomingCall) => {
+    setIncomingCall(payload);
+  };
 
-    const onOffer = async ({ fromUserId, sdp }: { callId: string; fromUserId: number; sdp: RTCSessionDescriptionInit }) => {
-      const pc = getOrCreatePeerConnection(fromUserId, { id: fromUserId, fullName: "" });
-      await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+  const onUserJoined = async ({ userId }: { callId: string; userId: number }) => {
+    if (!activeCallRef.current) return;
+    const pc = getOrCreatePeerConnection(userId, { id: userId, fullName: "" });
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit("webrtc:offer", { callId: activeCallRef.current.callId, toUserId: userId, sdp: offer });
+  };
 
-      const queued = pendingIceCandidates.current.get(fromUserId) ?? [];
-      for (const candidate of queued) await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      pendingIceCandidates.current.delete(fromUserId);
+  const onOffer = async ({ fromUserId, sdp }: { callId: string; fromUserId: number; sdp: RTCSessionDescriptionInit }) => {
+    const pc = getOrCreatePeerConnection(fromUserId, { id: fromUserId, fullName: "" });
+    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
 
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      socket.emit("webrtc:answer", { callId: activeCallRef.current?.callId, toUserId: fromUserId, sdp: answer });
-    };
+    const queued = pendingIceCandidates.current.get(fromUserId) ?? [];
+    for (const candidate of queued) await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    pendingIceCandidates.current.delete(fromUserId);
 
-    const onAnswer = async ({ fromUserId, sdp }: { callId: string; fromUserId: number; sdp: RTCSessionDescriptionInit }) => {
-      const pc = peerConnections.current.get(fromUserId);
-      if (!pc) return;
-      await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit("webrtc:answer", { callId: activeCallRef.current?.callId, toUserId: fromUserId, sdp: answer });
+  };
 
-      const queued = pendingIceCandidates.current.get(fromUserId) ?? [];
-      for (const candidate of queued) await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      pendingIceCandidates.current.delete(fromUserId);
-    };
+  const onAnswer = async ({ fromUserId, sdp }: { callId: string; fromUserId: number; sdp: RTCSessionDescriptionInit }) => {
+    const pc = peerConnections.current.get(fromUserId);
+    if (!pc) return;
+    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
 
-    const onIceCandidate = async ({ fromUserId, candidate }: { callId: string; fromUserId: number; candidate: RTCIceCandidateInit }) => {
-      const pc = peerConnections.current.get(fromUserId);
-      if (pc?.remoteDescription) {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      } else {
-        const queue = pendingIceCandidates.current.get(fromUserId) ?? [];
-        queue.push(candidate);
-        pendingIceCandidates.current.set(fromUserId, queue);
-      }
-    };
+    const queued = pendingIceCandidates.current.get(fromUserId) ?? [];
+    for (const candidate of queued) await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    pendingIceCandidates.current.delete(fromUserId);
+  };
 
-    const onUserLeft = ({ userId }: { callId: string; userId: number }) => {
-      cleanupPeer(userId);
+  const onIceCandidate = async ({ fromUserId, candidate }: { callId: string; fromUserId: number; candidate: RTCIceCandidateInit }) => {
+    const pc = peerConnections.current.get(fromUserId);
+    if (pc?.remoteDescription) {
+      await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } else {
+      const queue = pendingIceCandidates.current.get(fromUserId) ?? [];
+      queue.push(candidate);
+      pendingIceCandidates.current.set(fromUserId, queue);
+    }
+  };
 
-      const current = activeCallRef.current;
-      const remainingCount = current
-        ? Object.keys(current.peers).filter((id) => Number(id) !== userId).length
-        : 0;
+  const onUserLeft = ({ userId }: { callId: string; userId: number }) => {
+    cleanupPeer(userId);
 
-      setActiveCall((prev) => {
-        if (!prev) return prev;
-        const rest = { ...prev.peers };
-        delete rest[userId];
-        return { ...prev, peers: rest };
-      });
+    const current = activeCallRef.current;
+    const remainingCount = current
+      ? Object.keys(current.peers).filter((id) => Number(id) !== userId).length
+      : 0;
 
-      if (remainingCount === 0) {
-        leaveCallInternal();
-      }
-    };
+    setActiveCall((prev) => {
+      if (!prev) return prev;
+      const rest = { ...prev.peers };
+      delete rest[userId];
+      return { ...prev, peers: rest };
+    });
 
-    const onUserDeclined = ({ userId }: { callId: string; userId: number }) => {
-      onUserLeft({ callId: "", userId });
-    };
+    if (remainingCount === 0) {
+      leaveCallInternal();
+    }
+  };
 
-    const onCallEnded = () => {
-      cleanupCall();
-    };
+  const onUserDeclined = ({ userId }: { callId: string; userId: number }) => {
+    onUserLeft({ callId: "", userId });
+  };
 
-    socket.on("call:incoming", onIncoming);
-    socket.on("call:user-joined", onUserJoined);
-    socket.on("webrtc:offer", onOffer);
-    socket.on("webrtc:answer", onAnswer);
-    socket.on("webrtc:ice-candidate", onIceCandidate);
-    socket.on("call:user-left", onUserLeft);
-    socket.on("call:user-declined", onUserDeclined);
-    socket.on("call:ended", onCallEnded);
+  const onCallEnded = () => {
+    cleanupCall();
+  };
 
-    return () => {
-      socket.off("call:incoming", onIncoming);
-      socket.off("call:user-joined", onUserJoined);
-      socket.off("webrtc:offer", onOffer);
-      socket.off("webrtc:answer", onAnswer);
-      socket.off("webrtc:ice-candidate", onIceCandidate);
-      socket.off("call:user-left", onUserLeft);
-      socket.off("call:user-declined", onUserDeclined);
-      socket.off("call:ended", onCallEnded);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getOrCreatePeerConnection, cleanupPeer, cleanupCall, leaveCallInternal]);
+  socket.on("connect", onConnect);
+  socket.on("call:incoming", onIncoming);
+  socket.on("call:user-joined", onUserJoined);
+  socket.on("webrtc:offer", onOffer);
+  socket.on("webrtc:answer", onAnswer);
+  socket.on("webrtc:ice-candidate", onIceCandidate);
+  socket.on("call:user-left", onUserLeft);
+  socket.on("call:user-declined", onUserDeclined);
+  socket.on("call:ended", onCallEnded);
+
+  return () => {
+    socket.off("connect", onConnect);
+    socket.off("call:incoming", onIncoming);
+    socket.off("call:user-joined", onUserJoined);
+    socket.off("webrtc:offer", onOffer);
+    socket.off("webrtc:answer", onAnswer);
+    socket.off("webrtc:ice-candidate", onIceCandidate);
+    socket.off("call:user-left", onUserLeft);
+    socket.off("call:user-declined", onUserDeclined);
+    socket.off("call:ended", onCallEnded);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [getOrCreatePeerConnection, cleanupPeer, cleanupCall, leaveCallInternal]);
 
   return {
     incomingCall,

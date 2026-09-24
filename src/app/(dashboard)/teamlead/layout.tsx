@@ -94,7 +94,7 @@ const navItems: NavItem[] = [
     url: "/teamlead/dashboard"
   },
   {
-    label: "Employees",
+    label: "Team Members",
     icon: Users,
     url: "/teamlead/team"
   },

@@ -9,6 +9,7 @@ import { useCall } from "../hooks/useCall";
 import IncomingCallModal from "./IncomingCallModal";
 import ActiveCallView from "./ActiveCallView";
 import DeviceSelectModal from "./DeviceSelectModal";
+import { useRingtone } from "../hooks/useRingtone";
 import { CallType } from "../types";
 
 interface ChatCallContextValue {
@@ -42,10 +43,11 @@ function useElapsedLabel(startedAt: number) {
 export default function ChatSocketProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   useChatSocket();
-
+  
   const call = useCall();
   const [showIncomingDevicePicker, setShowIncomingDevicePicker] = useState(false);
-
+  
+  useRingtone(!!call.incomingCall && !showIncomingDevicePicker);
   useEffect(() => {
     if (!user?.id) return;
     const unregister = call.registerCallSocketHandlers();
