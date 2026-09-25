@@ -6,7 +6,7 @@ import { Pencil, Trash2, Plus } from "lucide-react";
 
 import { RootState } from "@/src/lib/store";
 import { EmployeeTask } from "../type";
-import CreateEmployeeActivityModal from "./CreateEmployeeTaskModal";
+import CreateEmployeeActivityModal from "../../activities/components/CreateEmployeeActivityModal";
 import EditEmployeeTaskModal from "./EditEmployeeTaskModal";
 import { deleteEmployeeTask } from "../api/task.service";
 
@@ -48,8 +48,6 @@ export default function TaskCard({
 
     const currentUserId = useSelector((state: RootState) => state.auth.user?.id);
     const isCreator = task.createdById === currentUserId;
-    console.log(currentUserId)
-    console.log("this",task)
 
     const [addActivityOpen, setAddActivityOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
@@ -87,6 +85,11 @@ export default function TaskCard({
                         Goal : {task.goal.title}
 
                     </p>
+                    <p className="text-sm text-slate-500 mt-1">
+
+                        Desc : {task.description}
+
+                    </p>
 
                 </div>
 
@@ -108,6 +111,7 @@ export default function TaskCard({
                     {isCreator && (
                         <div className="flex items-center gap-1 ml-1">
                             <button
+                                type="button"
                                 onClick={() => setEditOpen(true)}
                                 title="Edit task"
                                 className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition"
@@ -115,6 +119,7 @@ export default function TaskCard({
                                 <Pencil size={13} />
                             </button>
                             <button
+                                type="button"
                                 onClick={handleDelete}
                                 disabled={deleting}
                                 title="Delete task"
@@ -219,6 +224,7 @@ export default function TaskCard({
 
             {/* Jump straight into creating an activity inside this task */}
             <button
+                type="button"
                 onClick={() => setAddActivityOpen(true)}
                 className="mt-5 flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs font-semibold text-slate-500 hover:border-cyan-400 hover:text-cyan-600 transition w-full justify-center"
             >
@@ -226,14 +232,23 @@ export default function TaskCard({
                 Add Activity to this Task
             </button>
 
-            <CreateEmployeeActivityModal
-                open={addActivityOpen}
-                onClose={() => setAddActivityOpen(false)}
-                onCreated={() => onChanged?.()}
-                defaultTaskId={task.id}
-            />
+            {/*
+              Mounted only while open — see GoalCard.tsx for why this
+              matters: mounting unconditionally lets every hook inside
+              the modal (data fetches included) run for every single
+              TaskCard the instant this list renders, not just the one
+              the user opened.
+            */}
+            {addActivityOpen && (
+                <CreateEmployeeActivityModal
+                    open={addActivityOpen}
+                    onClose={() => setAddActivityOpen(false)}
+                    onCreated={() => onChanged?.()}
+                    defaultTaskId={task.id}
+                />
+            )}
 
-            {isCreator && (
+            {editOpen && isCreator && (
                 <EditEmployeeTaskModal
                     open={editOpen}
                     task={task}

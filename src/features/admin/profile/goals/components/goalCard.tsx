@@ -6,7 +6,7 @@ import { Pencil, Trash2, Plus, Calendar } from "lucide-react";
 
 import { RootState } from "@/src/lib/store";
 import { EmployeeGoal } from "../types";
-import CreateEmployeeTaskModal from "./CreateEmployeeGoalModal";
+import CreateEmployeeTaskModal from "../../tasks/components/CreateEmployeeTaskModal";
 import EditEmployeeGoalModal from "./EditEmployeeGoalModal";
 import { deleteEmployeeGoal } from "../api/goal.service";
 

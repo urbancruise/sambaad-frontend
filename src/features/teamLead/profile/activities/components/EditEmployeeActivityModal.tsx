@@ -80,7 +80,7 @@ export default function EditEmployeeActivityModal({ open, activity, onClose, onU
                         />
                     </div>
 
-                    <div>
+                    {/* <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">Description</label>
                         <textarea
                             value={description}
@@ -88,7 +88,7 @@ export default function EditEmployeeActivityModal({ open, activity, onClose, onU
                             rows={3}
                             className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-cyan-500 focus:outline-none resize-none"
                         />
-                    </div>
+                    </div> */}
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>

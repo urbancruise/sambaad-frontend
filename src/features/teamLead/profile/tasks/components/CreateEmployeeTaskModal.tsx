@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { X, ListTodo, Loader2 } from "lucide-react";
 
 import { createEmployeeTask } from "../api/task.service";
-import { useEmployeeGoals } from "../../goals/hooks/useEmployeeGoals";
+import { getEmployeeGoals } from "../../goals/api/goal.service";
 
 interface Props {
     open: boolean;
@@ -15,11 +15,28 @@ interface Props {
     defaultTaskId?: string;
 }
 
+interface GoalOption {
+    id: string;
+    title: string;
+}
+
 const PRIORITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
 
 export default function CreateEmployeeTaskModal({ open, onClose, onCreated, defaultGoalId, defaultTaskId: _defaultTaskId }: Props) {
     const { employeeId } = useParams<{ employeeId: string }>();
-    const { goals } = useEmployeeGoals();
+
+    // Local, modal-only copy of the employee's goals — used only to
+    // populate the "pick a goal" dropdown when no defaultGoalId was
+    // passed in. This intentionally does NOT go through the shared
+    // useEmployeeGoals()/Redux slice: that hook's loading flag is also
+    // what GoalPage uses to decide whether to render the goal-card grid
+    // at all. Sharing it meant opening this modal flipped the page's
+    // loading flag to true, GoalTable swapped the whole grid out for a
+    // "Loading goals..." placeholder, every GoalCard (including this
+    // modal's parent) unmounted, and the modal vanished with it before
+    // ever becoming visible — which looked like the page "reloading".
+    const [goals, setGoals] = useState<GoalOption[]>([]);
+    const [goalsLoading, setGoalsLoading] = useState(false);
 
     const [goalId, setGoalId] = useState(defaultGoalId ?? "");
     const [title, setTitle] = useState("");
@@ -30,6 +47,32 @@ export default function CreateEmployeeTaskModal({ open, onClose, onCreated, defa
     const [estimatedHours, setEstimatedHours] = useState<number | "">("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!open || defaultGoalId || !employeeId) return;
+
+        let cancelled = false;
+
+        const loadGoals = async () => {
+            try {
+                setGoalsLoading(true);
+                const response = await getEmployeeGoals(employeeId);
+                if (!cancelled) {
+                    setGoals(response.goals ?? response);
+                }
+            } catch {
+                if (!cancelled) setGoals([]);
+            } finally {
+                if (!cancelled) setGoalsLoading(false);
+            }
+        };
+
+        loadGoals();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [open, defaultGoalId, employeeId]);
 
     if (!open) return null;
 
@@ -82,7 +125,7 @@ export default function CreateEmployeeTaskModal({ open, onClose, onCreated, defa
                         <ListTodo size={18} className="text-blue-500" />
                         <h2 className="text-lg font-bold text-slate-800">Assign New Task</h2>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
+                    <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">
                         <X size={16} />
                     </button>
                 </div>
@@ -99,14 +142,17 @@ export default function CreateEmployeeTaskModal({ open, onClose, onCreated, defa
                                 required
                                 value={goalId}
                                 onChange={(e) => setGoalId(e.target.value)}
-                                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+                                disabled={goalsLoading}
+                                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none disabled:opacity-60"
                             >
-                                <option value="">Select this employee's goal</option>
+                                <option value="">
+                                    {goalsLoading ? "Loading goals..." : "Select this employee's goal"}
+                                </option>
                                 {goals.map((g) => (
                                     <option key={g.id} value={g.id}>{g.title}</option>
                                 ))}
                             </select>
-                            {goals.length === 0 && (
+                            {!goalsLoading && goals.length === 0 && (
                                 <p className="mt-1 text-xs text-slate-400">
                                     This employee has no goals yet — create a goal first.
                                 </p>

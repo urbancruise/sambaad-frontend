@@ -152,6 +152,7 @@ export default function GoalCard({ goal, onChanged }: Props) {
           {isCreator && (
             <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-100 shrink-0">
               <button
+                type="button"
                 onClick={() => setEditOpen(true)}
                 title="Edit goal"
                 className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-white hover:shadow-xs transition active:scale-90"
@@ -159,6 +160,7 @@ export default function GoalCard({ goal, onChanged }: Props) {
                 <Pencil size={13} />
               </button>
               <button
+                type="button"
                 onClick={handleDelete}
                 disabled={deleting}
                 title="Delete goal"
@@ -224,6 +226,7 @@ export default function GoalCard({ goal, onChanged }: Props) {
       {/* Footer Row */}
       <div className="flex flex-wrap items-center justify-between pt-3 border-t border-slate-100/80 gap-2">
         <button
+          type="button"
           onClick={() => setAddTaskOpen(true)}
           className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-xs transition-all active:scale-95 ${theme.btnBg}`}
         >
