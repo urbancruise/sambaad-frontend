@@ -118,6 +118,7 @@ export default function ActivityCard({
                         <p className="text-slate-500 mt-2">
 
                             {activity.description}
+                            
 
                         </p>
 

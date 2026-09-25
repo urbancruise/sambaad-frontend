@@ -116,6 +116,7 @@ export default function TaskGroup({ goal, tasks }: Props) {
                                             <th className="px-5 py-3.5 text-left">Launch Date</th>
                                             <th className="px-5 py-3.5 text-left">Target Date</th>
                                             <th className="px-5 py-3.5 text-left">Priority</th>
+                                            <th className="px-5 py-3.5 text-left">Estd. Time</th>
                                             <th className="px-5 py-3.5 text-center">Actions</th>
                                         </tr>
                                     </thead>

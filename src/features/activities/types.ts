@@ -23,6 +23,7 @@ export interface Activity {
     priority: Priority;
 
     status: ActivityStatus;
+   estimatedMinutes : number  | null;
 
     progress: number;
 

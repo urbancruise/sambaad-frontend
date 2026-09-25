@@ -25,7 +25,8 @@ export default function ActivityList({ activities }: Props) {
             <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-300 text-[12px] font-bold uppercase tracking-wider text-slate-900 dark:text-slate-500 border-b border-slate-700/80 backdrop-blur-md shadow-sm">
                     <tr>
-                        <th className="py-2.5 px-4 w-full">Activity Name</th>
+                        <th className="py-2.5 px-4">Activity Name</th>
+                        <th className="">Estd. Min</th>
                         <th className="py-2.5 px-4 text-right whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>

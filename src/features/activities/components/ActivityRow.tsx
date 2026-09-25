@@ -78,7 +78,23 @@ export default function ActivityRow({ activity }: Props) {
                         >
                             {activity.title}
                         </span>
+                        
                     </button>
+                </td>
+
+
+                <td className="py-2.5 px-2 max-w-[200px] sm:max-w-[280px]">
+                    
+                    
+                        <span
+                            className={`text-s truncate font-medium transition-all ${
+                                isCompleted
+                                    ? "line-through text-slate-900 dark:text-slate-500"
+                                    : "text-slate-900 dark:text-slate-900 group-hover:text-black dark:group-hover:text-white"
+                            }`}
+                        >
+                            {activity.estimatedMinutes?? "-"} min
+                        </span>
                 </td>
 
                 {/* Actions Cell */}

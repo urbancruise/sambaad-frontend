@@ -87,7 +87,7 @@ export default function TaskCard({ task, compact }: Props) {
         return (
             <div className="py-2 px-3 bg-slate-50/70 border border-slate-100 rounded-xl flex items-center justify-between text-[11px] gap-2">
                 <Link href={`${basePath}/tasks`} className="flex-1 truncate text-slate-800 font-medium hover:text-slate-900 transition-colors">
-                    {task.title}
+                    {task.title} 
                 </Link>
                 <div className="flex gap-1 flex-shrink-0">
                     <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold border ${activeStatusStyle}`}>
@@ -100,70 +100,75 @@ export default function TaskCard({ task, compact }: Props) {
 
     return (
         <>
-            <tr className="hover:bg-slate-50/60 transition duration-150 group">
-                 <td className="px-5 py-4 font-bold text-slate-800 max-w-[240px] truncate">
-                 <Link href={`${basePath}/activities`}>
-                    {task.title}
-                </Link>
-                </td>
-                <td className="px-5 py-4">
-                    <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${activeStatusStyle}`}>
-                        {task.status}
-                    </span>
-                </td>
-                <td className="px-5 py-4 min-w-[180px]">
-                    <div className="flex justify-between text-[11px] mb-1.5 font-semibold text-slate-400">
-                        <span>Progress</span>
-                        <span className="font-bold text-slate-700">{task.progress || 0}%</span>
-                    </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-slate-800 rounded-full transition-all duration-500"
-                            style={{ width: `${task.progress || 0}%` }}
-                        />
-                    </div>
-                </td>
-                <td className="px-5 py-4 text-xs font-semibold text-slate-500">{formatDate(task.startDate)}</td>
-                <td className="px-5 py-4 text-xs font-bold text-slate-700">{formatDate(task.dueDate)}</td>
-                <td className="px-5 py-4">
-                    <span className={`rounded-lg border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${activePriorityStyle}`}>
-                        {task.priority}
-                    </span>
-                </td>
-                <td className="px-5 py-4">
-                    <div className="flex justify-center items-center gap-1.5">
-                        {isAssignee && (
-                            <button
-                                disabled={statusLoading || task.status === "COMPLETED"}
-                                onClick={handleComplete}
-                                className="p-1.5 rounded-xl bg-slate-100/80 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all active:scale-95 disabled:opacity-40"
-                                title={task.status === "COMPLETED" ? "Completed" : "Mark Complete"}
-                            >
-                                {task.status === "COMPLETED" ? <CheckSquare size={14} /> : <Square size={14} />}
-                            </button>
-                        )}
-                        {isCreator && (
-                            <>
-                                <button
-                                    onClick={() => setOpen(true)}
-                                    className="p-1.5 rounded-xl bg-slate-100/80 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-all active:scale-95"
-                                    title="Edit Task"
-                                >
-                                    <Pencil size={14} />
-                                </button>
-                                <button
-                                    disabled={loading}
-                                    onClick={handleDelete}
-                                    className="p-1.5 rounded-xl bg-slate-100/80 text-slate-500 hover:bg-rose-50 hover:text-[#c2215b] transition-all active:scale-95 disabled:opacity-40"
-                                    title="Delete Task"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </td>
-            </tr>
+           <tr className="hover:bg-slate-50/60 transition duration-150 group">
+    <td className="px-5 py-4 font-bold text-slate-800 max-w-[240px] truncate">
+        <Link href={`${basePath}/activities`} title={task.description}>
+            {task.title}
+        </Link>
+    </td>
+    <td className="px-5 py-4">
+        <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${activeStatusStyle}`}>
+            {task.status}
+        </span>
+    </td>
+    <td className="px-5 py-4 min-w-[180px]">
+        <div className="flex justify-between text-[11px] mb-1.5 font-semibold text-slate-400">
+            <span>Progress</span>
+            <span className="font-bold text-slate-700">{task.progress || 0}%</span>
+        </div>
+        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div
+                className="h-full bg-slate-800 rounded-full transition-all duration-500"
+                style={{ width: `${task.progress || 0}%` }}
+            />
+        </div>
+    </td>
+    <td className="px-5 py-4 text-xs font-semibold text-slate-500">{formatDate(task.startDate)}</td>
+    <td className="px-5 py-4 text-xs font-bold text-slate-700">{formatDate(task.dueDate)}</td>
+    <td className="px-5 py-4">
+        <span className={`rounded-lg border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${activePriorityStyle}`}>
+            {task.priority}
+        </span>
+    </td>
+    <td className="px-5 py-4">
+        <span className={`rounded-lg border px-2.5 py-0.5 text-[11px] font-bold tracking-wide ${activePriorityStyle}`}>
+            {task?.estimatedHours ?? "-"}
+        </span>
+    </td>
+    <td className="px-5 py-4">
+        <div className="flex justify-center items-center gap-1.5">
+            {isAssignee && (
+                <button
+                    disabled={statusLoading || task.status === "COMPLETED"}
+                    onClick={handleComplete}
+                    className="p-1.5 rounded-xl bg-slate-100/80 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all active:scale-95 disabled:opacity-40"
+                    title={task.status === "COMPLETED" ? "Completed" : "Mark Complete"}
+                >
+                    {task.status === "COMPLETED" ? <CheckSquare size={14} /> : <Square size={14} />}
+                </button>
+            )}
+            {isCreator && (
+                <>
+                    <button
+                        onClick={() => setOpen(true)}
+                        className="p-1.5 rounded-xl bg-slate-100/80 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-all active:scale-95"
+                        title="Edit Task"
+                    >
+                        <Pencil size={14} />
+                    </button>
+                    <button
+                        disabled={loading}
+                        onClick={handleDelete}
+                        className="p-1.5 rounded-xl bg-slate-100/80 text-slate-500 hover:bg-rose-50 hover:text-[#c2215b] transition-all active:scale-95 disabled:opacity-40"
+                        title="Delete Task"
+                    >
+                        <Trash2 size={14} />
+                    </button>
+                </>
+            )}
+        </div>
+    </td>
+</tr>
 
             <EditTaskModal open={open} task={task} onClose={() => setOpen(false)} />
         </>
