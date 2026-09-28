@@ -85,11 +85,6 @@ export default function TaskCard({
                         Goal : {task.goal.title}
 
                     </p>
-                    <p className="text-sm text-slate-500 mt-1">
-
-                        Desc : {task.description}
-
-                    </p>
 
                 </div>
 
