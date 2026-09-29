@@ -114,7 +114,7 @@ export default function EditEmployeeActivityModal({ open, activity, onClose, onU
                             />
                         </div>
                     </div>
-
+{/* 
                     <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">Due Date</label>
                         <input
@@ -123,7 +123,7 @@ export default function EditEmployeeActivityModal({ open, activity, onClose, onU
                             onChange={(e) => setDueDate(e.target.value)}
                             className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-cyan-500 focus:outline-none"
                         />
-                    </div>
+                    </div> */}
 
                     <button
                         type="submit"

@@ -206,8 +206,8 @@ export default function CreateEmployeeActivityModal({ open, onClose, onCreated, 
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
+                    {/* <div className="grid grid-cols-2 gap-4"> */}
+                        {/* <div>
                             <label className="block text-xs font-semibold text-slate-600 mb-1">Start Date</label>
                             <input
                                 type="date"
@@ -224,8 +224,8 @@ export default function CreateEmployeeActivityModal({ open, onClose, onCreated, 
                                 onChange={(e) => setDueDate(e.target.value)}
                                 className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-cyan-500 focus:outline-none"
                             />
-                        </div>
-                    </div>
+                        </div> */}
+                    {/* </div> */}
 
                     <button
                         type="submit"

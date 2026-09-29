@@ -105,7 +105,7 @@ export default function EditEmployeeTaskModal({ open, task, onClose, onUpdated }
                                 ))}
                             </select>
                         </div>
-                        <div>
+                        {/* <div>
                             <label className="block text-xs font-semibold text-slate-600 mb-1">Est. Hours</label>
                             <input
                                 type="number"
@@ -114,7 +114,7 @@ export default function EditEmployeeTaskModal({ open, task, onClose, onUpdated }
                                 onChange={(e) => setEstimatedHours(e.target.value ? Number(e.target.value) : "")}
                                 className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                             />
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
