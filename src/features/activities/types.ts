@@ -24,6 +24,8 @@ export interface Activity {
 
     status: ActivityStatus;
    estimatedMinutes : number  | null;
+   startedAt?: string | null;
+   actualMinutes?: number | null;
 
     progress: number;
 

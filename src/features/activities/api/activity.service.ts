@@ -111,3 +111,11 @@ async(id:string)=>{
  );
 
 };
+
+export const updateActivityDetails = async (
+  id: string,
+  payload: Partial<Activity> | Record<string, unknown>
+) => {
+  const { data } = await api.put(`/activity/${id}`, payload);
+  return data.data;
+};

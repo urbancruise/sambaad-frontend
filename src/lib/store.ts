@@ -22,22 +22,19 @@ import teamLeadTaskReducer from "@/src/features/teamLead/assignments/tasks/store
 import selectableGoalReducer from "@/src/features/teamLead/assignments/shared/store/selectableGoalSlice";
 import selectableTaskReducer from "@/src/features/teamLead/assignments/shared/store/selectableTaskSlice";
 import managerTeamReducer from "@/src/features/manager/team/store/teamSlice";
-import managerTeamLeadProfileReducer from "@/src/features/manager/profile/store/profileSlice";
-import managerTeamLeadGoalsReducer from "@/src/features/manager/profile/goals/store/goalSlice";
-import managerTeamLeadTasksReducer from "@/src/features/manager/profile/tasks/store/taskSlice";
-import managerTeamLeadActivitiesReducer from "@/src/features/manager/profile/activities/store/activitySlice";
 import hodTeamReducer from "@/src/features/hod/team/store/teamSlice";
-import hodTeamLeadProfileReducer from "@/src/features/hod/profile/store/profileSlice";
-import hodTeamLeadGoalsReducer from "@/src/features/hod/profile/goals/store/goalSlice";
-import hodTeamLeadTasksReducer from "@/src/features/hod/profile/tasks/store/taskSlice";
-import hodTeamLeadActivitiesReducer from "@/src/features/hod/profile/activities/store/activitySlice";
 import adminTeamReducer from "@/src/features/admin/team/store/teamSlice";
-import adminUserProfileReducer from "@/src/features/admin/profile/store/profileSlice";
-import adminUserGoalsReducer from "@/src/features/admin/profile/goals/store/goalSlice";
-import adminUserTasksReducer from "@/src/features/admin/profile/tasks/store/taskSlice";
-import adminUserActivitiesReducer from "@/src/features/admin/profile/activities/store/activitySlice";
 import emailReducer from "@/src/features/email/store/Emailslice"
 import chatReducer from "@/src/features/chat/store/chatSlice";
+
+// Shared by admin / hod / manager employee-profile pages.
+// Replaces: adminUserProfile/Goals/Tasks/Activities,
+//           managerTeamLeadProfile/Goals/Tasks/Activities,
+//           hodTeamLeadProfile/Goals/Tasks/Activities.
+import sharedEmployeeProfileReducer from "@/src/features/employee-profile/store/profileSlice";
+import sharedEmployeeGoalsReducer from "@/src/features/employee-profile/goals/store/goalSlice";
+import sharedEmployeeTasksReducer from "@/src/features/employee-profile/tasks/store/taskSlice";
+import sharedEmployeeActivitiesReducer from "@/src/features/employee-profile/activities/store/activitySlice";
 
 export const makeStore = () => {
   return configureStore({
@@ -64,20 +61,12 @@ export const makeStore = () => {
       selectableGoals: selectableGoalReducer,
       selectableTasks: selectableTaskReducer,
       managerTeam: managerTeamReducer,
-      managerTeamLeadProfile: managerTeamLeadProfileReducer,
-      managerTeamLeadGoals: managerTeamLeadGoalsReducer,
-      managerTeamLeadTasks: managerTeamLeadTasksReducer,
-      managerTeamLeadActivities: managerTeamLeadActivitiesReducer,
       hodTeam: hodTeamReducer,
-      hodTeamLeadProfile: hodTeamLeadProfileReducer,
-      hodTeamLeadGoals: hodTeamLeadGoalsReducer,
-      hodTeamLeadTasks: hodTeamLeadTasksReducer,
-      hodTeamLeadActivities: hodTeamLeadActivitiesReducer,
       adminTeam: adminTeamReducer,
-      adminUserProfile: adminUserProfileReducer,
-      adminUserGoals: adminUserGoalsReducer,
-      adminUserTasks: adminUserTasksReducer,
-      adminUserActivities: adminUserActivitiesReducer,
+      sharedEmployeeProfile: sharedEmployeeProfileReducer,
+      sharedEmployeeGoals: sharedEmployeeGoalsReducer,
+      sharedEmployeeTasks: sharedEmployeeTasksReducer,
+      sharedEmployeeActivities: sharedEmployeeActivitiesReducer,
       email: emailReducer,
       chat: chatReducer,
     },

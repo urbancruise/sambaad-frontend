@@ -12,6 +12,8 @@ import { Activity } from "../types";
 import { ActivityFormValues } from "../schema/activity.schema";
 import { updateActivity as updateActivityAPI } from "../api/activity.service";
 import { updateActivity } from "../store/activitySlice";
+import { updateActivityDetails } from "../api/activity.service";
+
 
 interface Props {
     open: boolean;
@@ -23,6 +25,7 @@ export default function EditActivityModal({ open, onClose, activity }: Props) {
     const dispatch = useDispatch<AppDispatch>();
     const { tasks } = useTasks();
     const [loading, setLoading] = useState(false);
+    
     
     // Protection guard against hydration mismatch warnings
     const [mounted, setMounted] = useState(false);
@@ -37,13 +40,14 @@ export default function EditActivityModal({ open, onClose, activity }: Props) {
     const handleSubmit = async (values: ActivityFormValues) => {
         try {
             setLoading(true);
-            const updatedActivity = await updateActivityAPI(activity.id, values);
-            dispatch(updateActivity(updatedActivity));
-            onClose();
+           const updated = await updateActivityDetails(activity.id, values);
+dispatch(updateActivity({ ...activity, ...updated })); // keeps the joined `task`
+onClose();
         } finally {
             setLoading(false);
         }
     };
+    
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 select-none">

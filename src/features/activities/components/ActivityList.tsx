@@ -27,6 +27,8 @@ export default function ActivityList({ activities }: Props) {
                     <tr>
                         <th className="py-2.5 px-4">Activity Name</th>
                         <th className="">Estd. Min</th>
+                        <th className=""> Actual </th>
+                        <th className=""> Status </th>
                         <th className="py-2.5 px-4 text-right whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
