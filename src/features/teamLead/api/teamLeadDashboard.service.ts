@@ -1,15 +1,11 @@
 import api from "@/src/lib/axios";
 
+const BASE = "/teamlead/dashboard";
 
-export const getTeamLeadDashboard = async()=>{
-
-    const response =
-        await api.get(
-            "/teamlead/dashboard"
-        );
-
-    return response.data.data;
-
+export const getTeamLeadDashboard = async (teamLeadId?: number | string) => {
+  const url = teamLeadId ? `${BASE}/${teamLeadId}` : BASE;
+  const res = await api.get(url);
+  return res.data.data;
 };
 
 export const getMyTeam = async () => {

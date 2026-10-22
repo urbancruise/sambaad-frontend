@@ -9,8 +9,8 @@ import AttentionCard from "../cards/AttentionCard";
 import ActivityFeedCard from "../cards/ActivityFeedCard";
 import DeadlineCard from "../cards/DeadlineCard";
 
-const TeamLeadDashboard = () => {
-  const { dashboard, loading } = useTeamLeadDashboard();
+const TeamLeadDashboard = ({ teamLeadId }: { teamLeadId?: string | number }) => {
+  const { dashboard, loading } = useTeamLeadDashboard(teamLeadId);
 
   if (loading || !dashboard) {
     return (
@@ -26,40 +26,36 @@ const TeamLeadDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800 p-4 sm:p-6 lg:p-8 space-y-6 font-sans dark:bg-slate-950 dark:text-slate-100">
-      {/* Top Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight dark:text-slate-100">
-          Team Dashboard
-        </h1>
+  <div className="mx-auto w-full space-y-6 p-4 sm:p-6 lg:p-8 text-slate-800 dark:text-slate-100">
+    <div>
+      <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+        Team Dashboard
+      </h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        Performance, workload and deadlines across your team
+      </p>
+    </div>
+
+    <TeamOverviewCard overview={dashboard.overview} />
+
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+      <div className="xl:col-span-8 [&>*]:h-full">
+        <TeamPerformanceCard performance={dashboard.performance} />
       </div>
-
-      {/* Main Grid Layout matching design */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Overview Cards */}
-          <TeamOverviewCard overview={dashboard.overview} />
-
-          {/* Workload / Work Table Placeholder or Workload Card */}
-          {/* Note: Insert WorkloadCard here if needed */}
-
-          {/* Bottom Left Grid: Attention & Deadlines side-by-side */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AttentionCard />
-            <DeadlineCard deadlines={dashboard.deadlines} />
-          </div>
-        </div>
-
-        {/* Right Column (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          <TeamPerformanceCard performance={dashboard.performance} />
-          <LeaderboardCard data={dashboard.topPerformers} />
-          <ActivityFeedCard data={dashboard.activityFeed} />
-        </div>
+      <div className="xl:col-span-4 [&>*]:h-full">
+        <LeaderboardCard data={dashboard.topPerformers} />
       </div>
     </div>
-  );
+
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3 [&>*]:h-full">
+      <AttentionCard data={dashboard.needsAttention} />
+      <DeadlineCard deadlines={dashboard.deadlines} />
+      <div className="lg:col-span-2 xl:col-span-1 [&>*]:h-full">
+        <ActivityFeedCard data={dashboard.activityFeed} />
+      </div>
+    </div>
+  </div>
+);
 };
 
 export default TeamLeadDashboard;

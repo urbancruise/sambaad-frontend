@@ -15,7 +15,7 @@ import {
 
 import { getTeamLeadDashboard, createGoal, createTask, createActivity} from "../api/teamLeadDashboard.service";
 
-export const useTeamLeadDashboard = () => {
+export const useTeamLeadDashboard = (teamLeadId?: number | string) => {
 
     const dispatch =
         useDispatch<AppDispatch>();
@@ -28,6 +28,7 @@ export const useTeamLeadDashboard = () => {
         (state: RootState) =>
             state.teamLeadDashboard
     );
+    
 
     const refreshDashboard =
         useCallback(async () => {
@@ -36,8 +37,7 @@ export const useTeamLeadDashboard = () => {
 
             try {
 
-                const data =
-                    await getTeamLeadDashboard();
+                const data = await getTeamLeadDashboard(teamLeadId);
 
                 dispatch(
                     success(data)
@@ -51,9 +51,10 @@ export const useTeamLeadDashboard = () => {
                     )
                 );
 
+                  
             }
 
-        }, [dispatch]);
+        }, [dispatch, teamLeadId]);
 
     useEffect(() => {
 

@@ -1,9 +1,5 @@
 import { TeamLeaderboard } from "../types";
-
-interface Props {
-  data: TeamLeaderboard[];
-}
-
+interface Props { data: TeamLeaderboard[] }
 const LeaderboardCard = ({ data }: Props) => {
   return (
     <div className="bg-[#fffbeb] border border-amber-200/80 rounded-2xl p-5 shadow-sm dark:bg-amber-950/20 dark:border-amber-900/40">

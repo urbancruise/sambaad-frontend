@@ -1,6 +1,7 @@
 export interface TeamLeadOverview {
 
     totalEmployees:number;
+    overdueTasks: number;
 
     activeEmployees:number;
 
@@ -21,14 +22,18 @@ export interface TeamLeadOverview {
 }
 
 
+export interface TrendPoint {
+    month: string;
+    performance: number;
+    completion: number;
+    productivity: number;
+}
+
 export interface TeamPerformance {
-
-    averagePerformance:number;
-
-    averageCompletion:number;
-
-    averageProductivity:number;
-
+    averagePerformance: number;
+    averageCompletion: number;
+    averageProductivity: number;
+    trend: TrendPoint[];
 }
 
 
@@ -83,6 +88,14 @@ export interface ActivityFeed {
     updatedAt:string;
 
 }
+export interface TeamAttention {
+  employeeId: number;
+  employeeName: string;
+  activeTasks: number;
+  overdueTasks: number;
+  pendingActivities: number;
+  overdueActivities: number;
+}
 
 
 export interface DeadlineItem {
@@ -112,9 +125,10 @@ export interface TeamLeadDashboard {
 
     topPerformers:TeamLeaderboard[];
 
-    needsAttention:TeamLeaderboard[];
+    needsAttention:TeamAttention[];
 
     activityFeed:ActivityFeed[];
+     
 
     deadlines:{
         overdue:DeadlineItem[];

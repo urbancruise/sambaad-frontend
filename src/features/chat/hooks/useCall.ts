@@ -92,39 +92,53 @@ export const useCall = () => {
     closeCallWindow();
   }, [closeCallWindow]);
 
-  const getOrCreatePeerConnection = useCallback((remoteUserId: number, remoteUser: ChatUser) => {
-    let pc = peerConnections.current.get(remoteUserId);
-    if (pc) return pc;
+const getOrCreatePeerConnection = useCallback((remoteUserId: number, remoteUser: ChatUser) => {
+  let pc = peerConnections.current.get(remoteUserId);
+  if (pc) return pc;
 
-    pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+  pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
-    localStreamRef.current?.getTracks().forEach((track) => {
-      pc!.addTrack(track, localStreamRef.current!);
-    });
+  // --- DIAGNOSTIC LOGGING (temporary — remove once working) ---
+  pc.oniceconnectionstatechange = () => {
+    console.log(`[call] ICE state with user ${remoteUserId}:`, pc!.iceConnectionState);
+  };
+  pc.onconnectionstatechange = () => {
+    console.log(`[call] Connection state with user ${remoteUserId}:`, pc!.connectionState);
+  };
+  pc.onicecandidateerror = (e: any) => {
+    console.error(`[call] ICE candidate error with user ${remoteUserId}:`, e.errorText, e.url);
+  };
+  // --- END DIAGNOSTIC LOGGING ---
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate && activeCallRef.current) {
-        getSocket().emit("webrtc:ice-candidate", {
-          callId: activeCallRef.current.callId,
-          toUserId: remoteUserId,
-          candidate: event.candidate,
-        });
-      }
-    };
+  localStreamRef.current?.getTracks().forEach((track) => {
+    console.log(`[call] Adding local track:`, track.kind, track.enabled, track.readyState);
+    pc!.addTrack(track, localStreamRef.current!);
+  });
 
-    pc.ontrack = (event) => {
-      setActiveCall((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          peers: { ...prev.peers, [remoteUserId]: { user: remoteUser, stream: event.streams[0] } },
-        };
+  pc.onicecandidate = (event) => {
+    if (event.candidate && activeCallRef.current) {
+      getSocket().emit("webrtc:ice-candidate", {
+        callId: activeCallRef.current.callId,
+        toUserId: remoteUserId,
+        candidate: event.candidate,
       });
-    };
+    }
+  };
 
-    peerConnections.current.set(remoteUserId, pc);
-    return pc;
-  }, []);
+  pc.ontrack = (event) => {
+    console.log(`[call] Received remote track:`, event.track.kind, "from user", remoteUserId);
+    setActiveCall((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        peers: { ...prev.peers, [remoteUserId]: { user: remoteUser, stream: event.streams[0] } },
+      };
+    });
+  };
+
+  peerConnections.current.set(remoteUserId, pc);
+  return pc;
+}, []);
 
   const acquireLocalMedia = useCallback(async (type: CallType, devices?: DeviceChoice) => {
     const stream = await navigator.mediaDevices.getUserMedia({
