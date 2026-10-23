@@ -17,9 +17,9 @@ export default function TeamPage() {
       const keyword = search.toLowerCase();
       data = data.filter(
         (member) =>
-          member.fullName.toLowerCase().includes(keyword) ||
-          member.email.toLowerCase().includes(keyword) ||
-          member.username.toLowerCase().includes(keyword)
+          (member.fullName ??"").toLowerCase().includes(keyword) ||
+          (member.email ??"").toLowerCase().includes(keyword) ||
+          (member.username ??"").toLowerCase().includes(keyword)
       );
     }
 
