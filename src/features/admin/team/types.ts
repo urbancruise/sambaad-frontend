@@ -16,5 +16,25 @@ export interface OrgUserSummary {
     totalActivities: number;
     completedActivities: number;
     overdueActivities: number;
-    avatarUrl? : string
+    avatarUrl? : string;
+     departmentId: number | null;
+    departmentName: string | null;
+    manager: { id: number; fullName: string; departmentName: string | null } | null;
+}
+export interface Department { id: number; name: string }
+
+export interface PaginatedUsers {
+    items: OrgUserSummary[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface TeamQuery {
+    page: number;
+    limit: number;
+    search?: string;
+    role?: string;
+    departmentId?: number;
 }

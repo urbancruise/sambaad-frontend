@@ -69,6 +69,24 @@ export default function UserCard({ user }: Props) {
                 </span>
             </div>
 
+            {/* Reporting manager + department tag */}
+<div className="mt-3 space-y-1 rounded-lg bg-slate-50 px-2.5 py-2 text-[11px] dark:bg-slate-800/60">
+    <p className="truncate text-slate-500 dark:text-slate-400">
+        Reports to:{" "}
+        <span className="font-semibold text-slate-700 dark:text-slate-200">
+            {user.manager?.fullName ?? "No manager"}
+        </span>
+        {user.manager?.departmentName && (
+            <span className="text-slate-400"> · {user.manager.departmentName}</span>
+        )}
+    </p>
+    {user.departmentName && (
+        <span className="inline-block rounded-md bg-indigo-50 px-1.5 py-0.5 font-semibold text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
+            {user.departmentName}
+        </span>
+    )}
+</div>
+
             {/* Metrics Row with vertical separators */}
             <div className="mt-4 grid grid-cols-3 text-center border-t border-b border-slate-100 py-2.5 dark:border-slate-800">
                 <div className="border-r border-slate-100 px-1 dark:border-slate-800">

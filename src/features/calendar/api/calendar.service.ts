@@ -61,6 +61,13 @@ export const getMonthlyCalendar = async (
     return response.data.data;
 };
 
+export const getTeamCalendar = async (
+    params?: Pick<CalendarQuery, "start" | "end">
+) => {
+    const response = await api.get("/calendar/team/events", { params });
+    return response.data.data;
+};
+
 export const searchCalendar = async (
     params: Pick<CalendarQuery, "search" | "type" | "priority" | "status" | "startDate" | "endDate">
 ) => {
