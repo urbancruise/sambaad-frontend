@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/src/lib/store";
 import { useAuth } from "@/src/features/auth/hooks/useAuth";
 import { getChatDirectory, getConversations } from "../api/chat.service";
 import { setConversations, setConversationsLoading } from "../store/chatSlice";
+import { refreshConversations } from "../hooks/useChatSocket";
 import ConversationList from "../components/ConversationList";
 import ChatWindow from "../components/ChatWindow";
 import NewConversationModal from "../components/NewConversationModal";
 import { useChatCall } from "../components/ChatSocketProvider";
-import { ChatUser } from "../types";
+import { ChatUser, ConversationSummary } from "../types";
 
 /**
  * Self-contained — takes no props, same as EmailFolderPage.tsx etc.
@@ -33,6 +35,7 @@ export default function ChatPage() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [showNewConversation, setShowNewConversation] = useState(false);
   const [mobileShowList, setMobileShowList] = useState(true);
+  const conversations = useSelector((state: RootState) => state.chat.conversations) as ConversationSummary[];
 
   useEffect(() => {
     (async () => {
@@ -47,6 +50,15 @@ export default function ChatPage() {
     })();
   }, [dispatch]);
 
+  // If the open chat disappears from the list (we were removed from the
+  // group, or exited it), close it instead of showing a dead window.
+  useEffect(() => {
+    if (activeConversationId && !conversations.some((c) => c.id === activeConversationId)) {
+      setActiveConversationId(null);
+      setMobileShowList(true);
+    }
+  }, [conversations, activeConversationId]);
+
   if (!user) return null;
 
   const handleSelectConversation = (conversationId: string) => {
@@ -54,8 +66,15 @@ export default function ChatPage() {
     setMobileShowList(false);
   };
 
+  // A chat/group was just created: load it into the list FIRST (this was
+  // why new contacts only showed after a manual refresh), then open it.
+  const handleCreated = async (conversationId: string) => {
+    await refreshConversations(dispatch);
+    handleSelectConversation(conversationId);
+  };
+
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       <div className={`${mobileShowList ? "flex" : "hidden"} md:flex`}>
         <ConversationList
           currentUserId={user.id}
@@ -69,9 +88,11 @@ export default function ChatPage() {
       <div className={`${mobileShowList ? "hidden" : "flex"} md:flex flex-1 min-w-0`}>
         {activeConversationId ? (
           <ChatWindow
+            key={activeConversationId}
             conversationId={activeConversationId}
             currentUserId={user.id}
-            onStartCall={(type) => startCall(activeConversationId, type)}
+            directory={directory}
+            onStartCall={(type, title) => startCall(activeConversationId, type, title)}
             onBack={() => setMobileShowList(true)}
           />
         ) : (
@@ -85,7 +106,7 @@ export default function ChatPage() {
         <NewConversationModal
           directory={directory}
           onClose={() => setShowNewConversation(false)}
-          onCreated={handleSelectConversation}
+          onCreated={handleCreated}
         />
       )}
     </div>

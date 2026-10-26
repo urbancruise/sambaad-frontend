@@ -1,19 +1,37 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useStore } from "react-redux";
+import { Dispatch } from "@reduxjs/toolkit";
 import { getSocket } from "@/src/lib/socket";
+import { RootState } from "@/src/lib/store";
 import { useAuth } from "@/src/features/auth/hooks/useAuth";
+import { getConversations } from "../api/chat.service";
 import {
   addMessage,
   applyConversationUpdate,
   applyReactionUpdate,
   markMessageDeleted,
+  setConversations,
   setPresence,
   setTyping,
   updateMessage,
 } from "../store/chatSlice";
 import { Message } from "../types";
+
+/**
+ * Reloads the conversation list from the server. Used after creating a
+ * chat/group, after group changes, and whenever the server says
+ * something changed that this client doesn't know about yet.
+ */
+export const refreshConversations = async (dispatch: Dispatch) => {
+  try {
+    const list = await getConversations();
+    dispatch(setConversations(list));
+  } catch (err) {
+    console.error("Failed to refresh conversations:", err);
+  }
+};
 
 /**
  * Mount this ONCE near the root of the authenticated app (see
@@ -25,6 +43,7 @@ import { Message } from "../types";
  */
 export const useChatSocket = () => {
   const dispatch = useDispatch();
+  const store = useStore<RootState>();
   const { user } = useAuth();
   const userIdRef = useRef<number | undefined>(user?.id);
   userIdRef.current = user?.id;
@@ -41,7 +60,22 @@ export const useChatSocket = () => {
 
     const onConversationUpdated = (payload: { conversationId: string; lastMessage: Message }) => {
       if (!userIdRef.current) return;
+
+      // First message of a chat we have never seen (someone just started
+      // a conversation with us) — fetch the list so it appears at once.
+      const known = store.getState().chat.conversations.some((c) => c.id === payload.conversationId);
+      if (!known) {
+        refreshConversations(dispatch);
+        return;
+      }
+
       dispatch(applyConversationUpdate({ ...payload, currentUserId: userIdRef.current }));
+    };
+
+    // A group was created / renamed / members changed, or we were added
+    // to or removed from one.
+    const onConversationRefresh = () => {
+      refreshConversations(dispatch);
     };
 
     const onTypingUpdate = (payload: { conversationId: string; userId: number; isTyping: boolean }) => {
@@ -81,6 +115,7 @@ export const useChatSocket = () => {
 
     socket.on("message:new", onMessageNew);
     socket.on("conversation:updated", onConversationUpdated);
+    socket.on("conversation:refresh", onConversationRefresh);
     socket.on("typing:update", onTypingUpdate);
     socket.on("message:updated", onMessageUpdated);
     socket.on("message:deleted", onMessageDeleted);
@@ -90,6 +125,7 @@ export const useChatSocket = () => {
     return () => {
       socket.off("message:new", onMessageNew);
       socket.off("conversation:updated", onConversationUpdated);
+      socket.off("conversation:refresh", onConversationRefresh);
       socket.off("typing:update", onTypingUpdate);
       socket.off("message:updated", onMessageUpdated);
       socket.off("message:deleted", onMessageDeleted);
@@ -97,7 +133,7 @@ export const useChatSocket = () => {
       socket.off("presence:update", onPresenceUpdate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, dispatch]);
+  }, [user?.id, dispatch, store]);
 };
 
 // ---- Emit helpers used by components -------------------------------------

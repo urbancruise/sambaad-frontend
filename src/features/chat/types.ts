@@ -91,6 +91,9 @@ export interface CallParticipantInfo extends ChatUser {
 export interface IncomingCall {
   callId: string;
   conversationId: string;
+  /** Group name (null for 1:1 chats). */
+  conversationName?: string | null;
+  isGroup?: boolean;
   type: CallType;
   caller: ChatUser;
 }

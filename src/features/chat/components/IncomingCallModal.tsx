@@ -15,10 +15,13 @@ export default function IncomingCallModal({ call, onAccept, onDecline }: Incomin
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
       <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 text-center">
         <div className="w-20 h-20 mx-auto rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-2xl font-bold text-slate-600 dark:text-slate-300 mb-4 animate-pulse">
-          {call.caller.fullName.slice(0, 2).toUpperCase()}
+          {(call.isGroup ? call.conversationName ?? "G" : call.caller.fullName).slice(0, 2).toUpperCase()}
         </div>
 
-        <p className="text-lg font-bold text-slate-900 dark:text-white">{call.caller.fullName}</p>
+        <p className="text-lg font-bold text-slate-900 dark:text-white">
+          {call.isGroup ? call.conversationName ?? "Group" : call.caller.fullName}
+        </p>
+        {call.isGroup && <p className="text-xs text-slate-400">{call.caller.fullName} is calling</p>}
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center justify-center gap-1.5">
           {call.type === "VIDEO" ? <Video size={14} /> : <Phone size={14} />}
           Incoming {call.type === "VIDEO" ? "video" : "voice"} call…

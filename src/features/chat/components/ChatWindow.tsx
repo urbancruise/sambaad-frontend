@@ -4,24 +4,27 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Phone, Video, Users, ChevronLeft } from "lucide-react";
 import { RootState } from "@/src/lib/store";
-import { ConversationDetail, Message } from "../types";
+import { ChatUser, ConversationDetail, ConversationSummary, Message } from "../types";
 import { getConversation, getMessages } from "../api/chat.service";
 import { setMessages, prependMessages, setActiveConversation, setMessagesLoading } from "../store/chatSlice";
 import { joinConversationRoom, leaveConversationRoom, emitMarkRead } from "../hooks/useChatSocket";
 import MessageBubble from "./MessageBubble";
 import MessageComposer from "./MessageComposer";
 import TypingIndicator from "./TypingIndicator";
+import ConversationInfoPanel from "./ConversationInfoPanel";
 
 interface ChatWindowProps {
   conversationId: string;
   currentUserId: number;
-  onStartCall: (type: "AUDIO" | "VIDEO") => void;
+  /** People the user can add to a group (org directory). */
+  directory: ChatUser[];
+  onStartCall: (type: "AUDIO" | "VIDEO", title: string) => void;
   onBack?: () => void; // mobile: return to conversation list
 }
 
 const MESSAGE_PAGE_SIZE = 30;
 
-export default function ChatWindow({ conversationId, currentUserId, onStartCall, onBack }: ChatWindowProps) {
+export default function ChatWindow({ conversationId, currentUserId, directory, onStartCall, onBack }: ChatWindowProps) {
   const dispatch = useDispatch();
   const messages = useSelector(
     (state: RootState) => state.chat.messagesByConversation[conversationId]
@@ -31,7 +34,16 @@ export default function ChatWindow({ conversationId, currentUserId, onStartCall,
     (state: RootState) => state.chat.typingByConversation[conversationId]
   ) as number[] | undefined;
 
-  const [conversation, setConversation] = useState<ConversationDetail | null>(null);
+  // Live copy from the store (updates instantly when the group is renamed
+  // or members change); the one fetched on open is only a fallback.
+  const summary = useSelector((state: RootState) =>
+    state.chat.conversations.find((c) => c.id === conversationId)
+  ) as ConversationSummary | undefined;
+  const onlineUserIds = useSelector((state: RootState) => state.chat.onlineUserIds) as number[];
+
+  const [detail, setDetail] = useState<ConversationDetail | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
+  const conversation = summary ?? detail;
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -49,13 +61,13 @@ export default function ChatWindow({ conversationId, currentUserId, onStartCall,
     (async () => {
       dispatch(setMessagesLoading(true));
       try {
-        const [detail, history] = await Promise.all([
+        const [fetchedDetail, history] = await Promise.all([
           getConversation(conversationId),
           getMessages(conversationId),
         ]);
         if (cancelled) return;
 
-        setConversation(detail);
+        setDetail(fetchedDetail);
         dispatch(
           setMessages({
             conversationId,
@@ -75,6 +87,15 @@ export default function ChatWindow({ conversationId, currentUserId, onStartCall,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
+
+  // Auto-scroll to bottom on new messages, but only if the user was
+  // already near the bottom (don't yank them down while reading
+  // history). Deliberately sets scrollTop directly on our own
+  // container instead of using scrollIntoView() — scrollIntoView
+  // walks up through EVERY scrollable ancestor (including <main>) to
+  // satisfy its default `block: "start"` positioning, which visibly
+  // scrolled the whole page/navbar area on every message load. This
+  // never touches anything outside our own scroll container.
   useEffect(() => {
     if (shouldAutoScroll.current && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -124,7 +145,7 @@ export default function ChatWindow({ conversationId, currentUserId, onStartCall,
     .filter(Boolean);
 
   return (
-    <div className="flex-1 flex flex-col h-full min-w-0">
+    <div className="relative overflow-hidden flex-1 flex flex-col h-full min-w-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="flex items-center gap-2 min-w-0">
@@ -133,27 +154,34 @@ export default function ChatWindow({ conversationId, currentUserId, onStartCall,
               <ChevronLeft size={20} />
             </button>
           )}
-          <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0">
-            {isGroup ? <Users size={16} /> : headerName.slice(0, 2).toUpperCase()}
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{headerName}</p>
-            <p className="text-xs text-slate-400 truncate">
-              {isGroup ? `${conversation.participants.length} members` : otherParticipant?.email}
-            </p>
-          </div>
+          {/* Clicking the avatar/name opens group / contact info */}
+          <button
+            onClick={() => setShowInfo(true)}
+            className="flex items-center gap-2 min-w-0 text-left rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 -mx-1 px-1 py-0.5 transition-colors"
+            title={isGroup ? "Group info" : "Contact info"}
+          >
+            <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0">
+              {isGroup ? <Users size={16} /> : headerName.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{headerName}</p>
+              <p className="text-xs text-slate-400 truncate">
+                {isGroup ? `${conversation.participants.length} members · tap for info` : otherParticipant?.email}
+              </p>
+            </div>
+          </button>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
           <button
-            onClick={() => onStartCall("AUDIO")}
+            onClick={() => onStartCall("AUDIO", headerName)}
             className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
             title="Voice call"
           >
             <Phone size={18} />
           </button>
           <button
-            onClick={() => onStartCall("VIDEO")}
+            onClick={() => onStartCall("VIDEO", headerName)}
             className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
             title="Video call"
           >
@@ -200,6 +228,17 @@ export default function ChatWindow({ conversationId, currentUserId, onStartCall,
         editingMessage={editingMessage}
         onCancelEdit={() => setEditingMessage(null)}
       />
+
+      {showInfo && (
+        <ConversationInfoPanel
+          conversation={conversation}
+          currentUserId={currentUserId}
+          directory={directory}
+          onlineUserIds={onlineUserIds}
+          onClose={() => setShowInfo(false)}
+          onLeft={() => setShowInfo(false)}
+        />
+      )}
     </div>
   );
 }
