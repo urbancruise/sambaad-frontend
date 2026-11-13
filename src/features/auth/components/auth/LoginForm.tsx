@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
@@ -35,6 +35,13 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [lockSeconds, setLockSeconds] = useState(0);
+
+useEffect(() => {
+  if (lockSeconds <= 0) return;
+  const t = setInterval(() => setLockSeconds((s) => (s > 0 ? s - 1 : 0)), 1000);
+  return () => clearInterval(t);
+}, [lockSeconds > 0]);
 
   const { 
     register, 
@@ -83,6 +90,9 @@ export default function LoginForm() {
           router.replace("/");
       }
     } catch (err: any) {
+      if (err.response?.status === 429) {
+  setLockSeconds(err.response.data?.retryAfter ?? 30);
+}
       dispatch(loginFailure());
       const message = err.response?.data?.message || err.message || "Invalid username or password.";
       setErrorMsg(message);

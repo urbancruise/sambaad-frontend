@@ -119,29 +119,29 @@ export default function Navbar({
 
                 {isWorkspaceOpen && (
                   <div className="absolute left-0 top-full pt-2 w-64 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="bg-[#121824] border border-slate-800 rounded-xl shadow-2xl p-2 gap-1 flex flex-col">
-                      {workspaceItems!.map(({ label, url, icon: Icon, desc }) => {
-                        const active = pathname === url || pathname.startsWith(`${url}/`);
-                        return (
-                          <Link
-                            key={label}
-                            href={url}
-                            className={`flex items-start gap-3 p-2.5 rounded-lg transition-all ${
-                              active 
-                                ? 'bg-[#03C35E]/10 text-[#03C35E]' 
-                                : 'hover:bg-slate-800/60 text-slate-300 hover:text-white'
-                            }`}
-                          >
-                            {Icon && <Icon size={18} className={`mt-0.5 ${active ? 'text-[#03C35E]' : 'text-[#F7C431]'}`} />}
-                            <div>
-                              <p className="text-sm font-semibold leading-none">{label}</p>
-                              {desc && <p className="text-[11px] text-slate-400 mt-1 leading-tight">{desc}</p>}
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
+  <div className="bg-white border border-slate-200 rounded-xl shadow-2xl p-2 gap-1 flex flex-col">
+    {workspaceItems!.map(({ label, url, icon: Icon, desc }) => {
+      const active = pathname === url || pathname.startsWith(`${url}/`);
+      return (
+        <Link
+          key={label}
+          href={url}
+          className={`flex items-start gap-3 p-2.5 rounded-lg transition-all ${
+            active 
+              ? 'bg-[#03C35E]/10 text-[#028a43]' 
+              : 'hover:bg-slate-100 text-slate-700 hover:text-slate-900'
+          }`}
+        >
+          {Icon && <Icon size={18} className={`mt-0.5 ${active ? 'text-[#03C35E]' : 'text-amber-500'}`} />}
+          <div>
+            <p className="text-sm font-semibold leading-none">{label}</p>
+            {desc && <p className="text-[11px] text-slate-500 mt-1 leading-tight">{desc}</p>}
+          </div>
+        </Link>
+      );
+    })}
+  </div>
+</div>
                 )}
               </div>
             )}
